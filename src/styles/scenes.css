@@ -1,0 +1,600 @@
+/* ─── Scene Layout Styles ────────────────────────────────────────────────────
+   Structural layout for each story scene.
+   Animation is applied via GSAP in JS; layout lives here.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Shared scene text layer ── */
+.scene__text {
+  position: relative;
+  z-index: var(--z-content);
+  max-width: min(700px, 90vw);
+  text-align: center;
+}
+
+.scene__date {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ink-ghost);
+  margin-bottom: var(--space-sm);
+}
+
+.scene__title {
+  font-size: var(--text-2xl);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--color-ink);
+  margin-bottom: var(--space-sm);
+  line-height: 1.15;
+}
+
+.scene__description {
+  font-size: var(--text-md);
+  color: var(--color-ink-soft);
+  line-height: 1.7;
+  max-width: 52ch;
+  margin: 0 auto;
+}
+
+.scene__location {
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--color-ink-ghost);
+  margin-top: var(--space-sm);
+  text-transform: uppercase;
+}
+
+/* ── Background image layer (full bleed) ── */
+.scene__bg {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-bg);
+}
+
+.scene__bg img,
+.scene__bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Soft vignette overlay on background images */
+.scene__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   INTRO SCENE
+   ─────────────────────────────────────────────────────────────────────────── */
+#scene-intro {
+  height: 200dvh; /* scroll space for pinned intro sequence */
+  background: var(--color-bg);
+}
+
+.intro__stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+}
+
+.intro__kitten {
+  width: clamp(80px, 15vw, 140px);
+  height: auto;
+}
+
+.intro__line {
+  font-family: var(--font-display);
+  font-style: italic;
+  text-align: center;
+  opacity: 0;         /* GSAP animates in */
+  will-change: opacity, transform;
+}
+
+.intro__line--whisper {
+  font-size: var(--text-md);
+  color: var(--color-ink-ghost);
+  letter-spacing: 0.25em;
+  text-transform: lowercase;
+}
+
+.intro__line--main {
+  font-size: var(--text-2xl);
+  color: var(--color-ink);
+}
+
+.intro__line--sub {
+  font-size: var(--text-lg);
+  color: var(--color-ink-soft);
+}
+
+.intro__scroll-hint {
+  position: absolute;
+  bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;        /* GSAP animates in */
+}
+
+.intro__scroll-hint span {
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-ghost);
+}
+
+.intro__scroll-arrow {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--color-ink-ghost), transparent);
+  animation: scroll-arrow 1.8s var(--ease-out) infinite;
+}
+
+@keyframes scroll-arrow {
+  0%   { transform: scaleY(0); transform-origin: top; opacity: 1; }
+  50%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
+  100% { transform: scaleY(1); transform-origin: bottom; opacity: 0; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MEET SCENE — "Tanisha. But I call her Betuuu."
+   ─────────────────────────────────────────────────────────────────────────── */
+#scene-meet {
+  height: 300dvh;
+  background: var(--color-bg);
+}
+
+.meet__stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meet__word {
+  position: absolute;
+  font-family: var(--font-display);
+  text-align: center;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.meet__word--name {
+  font-size: var(--text-3xl);
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+}
+
+.meet__word--bridge {
+  font-size: var(--text-xl);
+  color: var(--color-ink-soft);
+  font-style: italic;
+}
+
+.meet__word--nickname {
+  font-size: var(--text-hero);
+  background: linear-gradient(135deg, var(--color-blush), var(--color-peach), var(--color-lavender));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: -0.03em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TIMELINE SCENE — memory journey
+   ─────────────────────────────────────────────────────────────────────────── */
+#scene-timeline {
+  /* Height computed dynamically in JS based on memory count */
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.timeline__stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Horizontal track — scrolled via GSAP on desktop/tablet
+   Falls back to vertical on narrow/touch devices            */
+.timeline__track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  will-change: transform;
+}
+
+.timeline__track--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+}
+
+/* ── Memory scene within the timeline ── */
+.memory {
+  position: relative;
+  flex-shrink: 0;
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Layout: full */
+.memory--full .memory__media {
+  position: absolute;
+  inset: 0;
+}
+
+.memory--full .memory__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memory--full .memory__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-lg);
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
+  color: #fff;
+}
+
+/* Layout: float */
+.memory--float {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+}
+
+.memory--float .memory__media {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+
+.memory--float .memory__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Layout: polaroid */
+.memory--polaroid {
+  background: transparent;
+}
+
+.memory__polaroid-frame {
+  background: #fafafa;
+  padding: var(--space-sm);
+  padding-bottom: var(--space-xl);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  transform: rotate(-2deg);
+  max-width: min(320px, 80vw);
+  will-change: transform;
+}
+
+.memory__polaroid-frame img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.memory__polaroid-caption {
+  font-family: var(--font-note);
+  font-size: var(--text-md);
+  color: var(--color-ink-soft);
+  text-align: center;
+  margin-top: var(--space-sm);
+  padding: 0 var(--space-xs);
+}
+
+/* Layout: note */
+.memory--note {
+  background: var(--color-bg-deep);
+}
+
+.memory__note-paper {
+  background: #fffef7;
+  border-radius: 2px;
+  padding: var(--space-lg) var(--space-xl);
+  max-width: min(520px, 88vw);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05);
+  transform: rotate(0.8deg);
+}
+
+.memory__note-paper .scene__title {
+  text-align: left;
+  margin-bottom: var(--space-md);
+}
+
+.memory__note-paper .scene__description {
+  font-family: var(--font-note);
+  font-size: var(--text-md);
+  line-height: 1.8;
+  color: var(--color-ink);
+  max-width: none;
+  text-align: left;
+}
+
+/* Layout: video */
+.memory--video .memory__video-wrap {
+  position: relative;
+  width: min(700px, 90vw);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+}
+
+.memory--video video {
+  width: 100%;
+  display: block;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+}
+
+.memory__play-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.15);
+  transition: background var(--duration-base) var(--ease-out);
+}
+
+.memory__play-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.memory__play-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.memory__play-btn:hover .memory__play-icon {
+  transform: scale(1.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BIRTHDAY SCENE
+   ─────────────────────────────────────────────────────────────────────────── */
+#scene-birthday {
+  height: 300dvh;
+  background: var(--color-bg);
+}
+
+.birthday__stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.birthday__date {
+  font-size: var(--text-lg);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.birthday__greeting {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-style: italic;
+  color: var(--color-ink);
+  opacity: 0;
+  will-change: opacity, transform;
+  line-height: 1.05;
+}
+
+.birthday__name {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  background: linear-gradient(135deg, var(--color-blush), var(--color-peach));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* Bloom background — animated radial gradient */
+.birthday__bloom {
+  position: absolute;
+  inset: -20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--color-blush) 0%,
+    var(--color-peach) 30%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: scale(0.2);
+  will-change: opacity, transform;
+  z-index: var(--z-bg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FINAL SCENE — message + kitten ending
+   ─────────────────────────────────────────────────────────────────────────── */
+#scene-final {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: var(--space-xl) var(--space-lg);
+  padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom));
+}
+
+.final__content {
+  max-width: min(640px, 90vw);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.final__message {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-style: italic;
+  color: var(--color-ink-soft);
+  line-height: 1.9;
+  white-space: pre-line;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.final__sign-off {
+  font-size: var(--text-2xl);
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  opacity: 0;
+  will-change: opacity;
+}
+
+.final__kitten {
+  margin-top: var(--space-md);
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NAVIGATION OVERLAY
+   ─────────────────────────────────────────────────────────────────────────── */
+#nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: var(--z-nav);
+  padding: var(--space-md);
+  padding-top: calc(var(--space-md) + env(safe-area-inset-top));
+  padding-right: calc(var(--space-md) + env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+#nav.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav__btn {
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: rgba(253, 248, 243, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.nav__btn:hover {
+  color: var(--color-ink);
+  background: rgba(253, 248, 243, 1);
+}
+
+/* Music toggle */
+.nav__music {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(253, 248, 243, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  transition: transform var(--duration-fast) var(--ease-spring), background var(--duration-fast);
+}
+
+.nav__music:hover {
+  transform: scale(1.1);
+  background: rgba(253, 248, 243, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Narrow / portrait — vertical timeline, simplified grid layouts */
+@media (max-width: 640px) {
+  .memory--float {
+    grid-template-columns: 1fr;
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .memory__polaroid-frame {
+    max-width: min(280px, 78vw);
+  }
+
+  .memory__note-paper {
+    padding: var(--space-md);
+  }
+
+  .memory--video .memory__video-wrap {
+    width: 94vw;
+  }
+}
+
+/* Tablet landscape / medium viewports */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .memory--float {
+    padding: var(--space-lg);
+  }
+}
