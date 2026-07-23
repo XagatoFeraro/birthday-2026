@@ -5,32 +5,9 @@
 /* Font loading — self-hosted preferred.
    Fallback to Google Fonts if local files absent.
    font-display: swap prevents invisible text during load.              */
-@font-face {
-  font-family: 'Cormorant Garamond';
-  src: local('Cormorant Garamond'),
-       url('../fonts/CormorantGaramond-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Cormorant Garamond';
-  src: local('Cormorant Garamond Italic'),
-       url('../fonts/CormorantGaramond-Italic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Caveat';
-  src: local('Caveat'),
-       url('../fonts/Caveat-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* Self-hosted fonts loaded via JS in main.ts using BASE_URL for correct subpath.
+   These @font-face blocks are intentionally omitted here to avoid broken
+   relative paths on GitHub Pages. See src/utils/fonts.ts for the loader. */
 
 /* ── Reset ── */
 *, *::before, *::after {

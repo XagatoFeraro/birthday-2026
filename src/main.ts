@@ -3,13 +3,18 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/scenes.css'
 
-import { initScroll } from './utils/scroll'
-import { createNav }  from './components/nav'
-import { initIntro }  from './scenes/intro'
-import { initMeet }   from './scenes/meet'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { loadFonts }    from './utils/fonts'
+import { initScroll }   from './utils/scroll'
+import { createNav }    from './components/nav'
+import { initIntro }    from './scenes/intro'
+import { initMeet }     from './scenes/meet'
 import { initTimeline } from './scenes/timeline'
 import { initBirthday } from './scenes/birthday'
 import { initFinal }    from './scenes/final'
+
+gsap.registerPlugin(ScrollTrigger)
 
 function buildScaffold(): void {
   const app = document.getElementById('app')
@@ -63,17 +68,32 @@ function buildScaffold(): void {
 }
 
 function init(): void {
+  // 1. Fonts first — inject correct BASE_URL-aware @font-face rules
+  loadFonts()
+
+  // 2. Build DOM before any GSAP/ScrollTrigger runs
   buildScaffold()
+
+  // 3. Smooth scroll engine
   initScroll()
 
-  // Scene animations — order matters: DOM must be built before GSAP runs
+  // 4. Scenes — order matters, init after DOM exists
   initIntro()
   initMeet()
   initTimeline()
   initBirthday()
   initFinal()
 
+  // 5. Nav overlay
   document.body.appendChild(createNav())
+
+  // 6. Refresh ScrollTrigger after fonts + layout settle
+  //    Double RAF ensures browser has painted before measuring
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh()
+    })
+  })
 }
 
 if (document.readyState === 'loading') {

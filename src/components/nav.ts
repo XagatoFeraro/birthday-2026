@@ -65,7 +65,7 @@ let isPlaying = false
 function setupMusicToggle(btn: HTMLButtonElement): void {
   btn.addEventListener('click', () => {
     if (!audio) {
-      audio = new Audio(import.meta.env.BASE_URL + settings.music.file)
+      audio = new Audio(import.meta.env.BASE_URL + settings.music.file.replace(/^\//, ''))
       audio.loop = true
     }
 

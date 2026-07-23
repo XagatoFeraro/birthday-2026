@@ -1,8 +1,7 @@
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
+// Note: ScrollTrigger is registered in main.ts before initScroll() is called
 
 // ── Detect reduced-motion preference ────────────────────────────────────────
 export const prefersReducedMotion = window.matchMedia(

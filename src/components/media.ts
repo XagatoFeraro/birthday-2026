@@ -2,11 +2,11 @@
 // Render images and videos with fallback, lazy loading, and scroll-aware
 // resource management via IntersectionObserver.
 
-const BASE = import.meta.env.BASE_URL
-
 function resolvePath(path: string): string {
-  // Avoid double slashes when BASE already has trailing slash
-  return BASE.replace(/\/$/, '') + '/' + path.replace(/^\//, '')
+  // import.meta.env.BASE_URL always has a trailing slash in Vite
+  // e.g. '/' locally, '/birthday-2026/' on GitHub Pages
+  const base = import.meta.env.BASE_URL // guaranteed trailing slash by Vite
+  return base + path.replace(/^\//, '')
 }
 
 // ── Image ──────────────────────────────────────────────────────────────────

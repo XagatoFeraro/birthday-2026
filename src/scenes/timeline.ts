@@ -217,11 +217,14 @@ function initHorizontal(section: HTMLElement, stage: HTMLElement, track: HTMLEle
 
 // ── Vertical depth sequence (mobile + tablet) ────────────────────────────────
 function initVertical(section: HTMLElement, stage: HTMLElement, track: HTMLElement): void {
-  // Vertical: unpin the stage so scenes stack naturally
-  stage.style.cssText = 'position:relative;height:auto;overflow:visible'
+  // Override sticky CSS — vertical uses natural document flow
+  stage.style.position = 'relative'
+  stage.style.height   = 'auto'
+  stage.style.overflow = 'visible'
   track.classList.add('timeline__track--vertical')
-  // section height is already set dynamically; let it breathe
+  // Let section height be determined by content, not fixed dvh
   section.style.height = 'auto'
+  section.style.minHeight = '0'
 }
 
 // ── Per-scene content animations ─────────────────────────────────────────────
@@ -293,22 +296,25 @@ function animateSceneContent(section: HTMLElement, track: HTMLElement, isHorizon
       if (polaroid) gsap.set(polaroid, { rotate: -7, scale: 0.86, opacity: 0 })
       if (note)     gsap.set(note,     { rotate: 2.5, scale: 0.9, opacity: 0 })
 
+      // Root margin gives a generous buffer — avoids popping on fast scroll
       const observer = new IntersectionObserver(
         ([entry]) => {
           const dir = entry.boundingClientRect.top > 0 ? 1 : -1
           if (entry.isIntersecting) {
-            if (textEl)   gsap.to(textEl,   { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out' })
-            if (polaroid) gsap.to(polaroid, { rotate: -2, scale: 1, opacity: 1, duration: 0.7, ease: 'power2.out' })
-            if (note)     gsap.to(note,     { rotate: 0.8, scale: 1, opacity: 1, duration: 0.7, ease: 'power2.out' })
+            if (textEl)   gsap.to(textEl,   { opacity: 1, y: 0,             duration: 0.65, ease: 'power2.out' })
+            if (polaroid) gsap.to(polaroid, { rotate: -2, scale: 1, opacity: 1, duration: 0.7,  ease: 'power2.out' })
+            if (note)     gsap.to(note,     { rotate: 0.8, scale: 1, opacity: 1, duration: 0.7,  ease: 'power2.out' })
           } else {
-            if (textEl)   gsap.to(textEl,   { opacity: 0, y: 22 * dir, duration: 0.4, ease: 'power1.in' })
+            if (textEl)   gsap.to(textEl,   { opacity: 0, y: 22 * dir,      duration: 0.4,  ease: 'power1.in' })
             if (polaroid) gsap.to(polaroid, { rotate: -7, scale: 0.86, opacity: 0, duration: 0.35, ease: 'power1.in' })
             if (note)     gsap.to(note,     { rotate: 2.5, scale: 0.9, opacity: 0, duration: 0.35, ease: 'power1.in' })
           }
         },
-        { threshold: 0.25, rootMargin: '-8% 0px -8% 0px' }
+        { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
       )
       observer.observe(scene)
+      // Disconnect after page unload to prevent leaks (SPA-style cleanup)
+      window.addEventListener('beforeunload', () => observer.disconnect(), { once: true })
     }
   })
 }
