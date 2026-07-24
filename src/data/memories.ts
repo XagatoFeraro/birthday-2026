@@ -1,81 +1,74 @@
-// ─── Memory data ──────────────────────────────────────────────────────────────
-// Add your real memories here. Each entry becomes a cinematic scene.
-// The animation engine adapts automatically to the number of memories.
-//
-// layout options:
-//   'full'      → single full-screen photo
-//   'float'     → photo floating in space with text beside it
-//   'collage'   → multiple photos in a scrapbook composition
-//   'video'     → video scene (photo used as poster)
-//   'note'      → handwritten-style text moment (no photo needed)
-//   'polaroid'  → polaroid-inspired single photo with caption
-//
-// accent: optional color hint for this scene's ambient mood (CSS color string)
-
 export interface Memory {
   id: string
-  date: string          // Display string e.g. "March 2023"
+  date: string
   title: string
   description: string
-  layout: 'full' | 'float' | 'collage' | 'video' | 'note' | 'polaroid'
-  image?: string        // Path relative to public/ e.g. "images/memories/photo-01.webp"
-  images?: string[]     // For collage layout
-  video?: string        // Path relative to public/ e.g. "videos/memory-01.mp4"
-  location?: string     // Optional display location
-  accent?: string       // Optional ambient color e.g. "#f7c6c7"
+  layout: 'full' | 'float' | 'polaroid' | 'note' | 'video'
+  image?: string
+  images?: string[]
+  video?: string
+  location?: string
+  accent?: string
 }
 
 export const memories: Memory[] = [
   {
     id: 'memory-01',
-    date: '[ DATE ]',
-    title: '[ HOW WE MET ]',
-    description: '[ ADD YOUR STORY OF HOW YOU FIRST MET ]',
-    layout: 'full',
-    image: 'images/memories/photo-01.webp',
-    accent: '#f9e0d0',
-  },
-  {
-    id: 'memory-02',
-    date: '[ DATE ]',
-    title: '[ FIRST CONVERSATION ]',
-    description: '[ THE MOMENT EVERYTHING STARTED ]',
-    layout: 'float',
-    image: 'images/memories/photo-02.webp',
+    date: 'August 2017',
+    title: 'The very beginning.',
+    description: 'A school corridor in KV OEF, Kanpur. An 11th grader. A 9th grader. Neither of them knew this was it.',
+    layout: 'note',
     accent: '#fde8ec',
   },
   {
-    id: 'memory-03',
-    date: '[ DATE ]',
-    title: '[ A MEMORY ]',
-    description: '[ SOMETHING YOU REMEMBER VIVIDLY ]',
-    layout: 'polaroid',
-    image: 'images/memories/photo-03.webp',
-    accent: '#e8f0e8',
+    id: 'memory-02',
+    date: 'August 2017 — onwards',
+    title: '"Aree request to accept kr lo."',
+    description: 'One DM. One cheeky line. Nine years of everything.',
+    layout: 'note',
+    accent: '#ede8f8',
   },
   {
-    id: 'memory-04',
-    date: '[ DATE ]',
-    title: '[ ANOTHER MEMORY ]',
-    description: '[ SOMETHING FUNNY OR SWEET ]',
-    layout: 'note',
+    id: 'memory-03',
+    date: 'Add your photo ♡',
+    title: '[ Add a memory here ]',
+    description: '[ Drop your photo in public/images/memories/photo-03.webp and fill this in ]',
+    layout: 'full',
+    image: 'images/memories/photo-03.webp',
     accent: '#fdf3e3',
   },
   {
+    id: 'memory-04',
+    date: '6 July 2019',
+    title: 'The day it became official.',
+    description: 'She said yes. He will never recover. 7 years and counting.',
+    layout: 'polaroid',
+    image: 'images/memories/photo-04.webp',
+    accent: '#fde8ec',
+  },
+  {
     id: 'memory-05',
-    date: '[ DATE ]',
-    title: '[ A MOMENT TOGETHER ]',
-    description: '[ YOUR DESCRIPTION ]',
-    layout: 'video',
+    date: 'Add your photo ♡',
+    title: '[ Add a memory here ]',
+    description: '[ Drop your photo in public/images/memories/photo-05.webp and fill this in ]',
+    layout: 'float',
     image: 'images/memories/photo-05.webp',
-    video: 'videos/memory-01.mp4',
-    accent: '#e8e0f0',
+    accent: '#d8f0d8',
   },
 ]
 
-// The final birthday message — shown in the last scene
-export const birthdayMessage = `[ YOUR PERSONAL MESSAGE FOR BETUUU ]
+export const birthdayMessage = `Betuuu,
 
-Write something from the heart here.
-This can be as long as you like.
-It will display beautifully on screen.`
+Nine years ago you sent one cheeky DM and accidentally ruined my life in the best possible way.
+
+You are the most talented, most beautiful, most infuriating-when-I-ragebait-you person I know. A cloud engineer who keeps Airtel's internet running and somehow still has time to beat me regularly for crimes I definitely did not commit.
+
+You swim like you own the water. You sing like you don't know how good you are. You dance like the music was written just for you.
+
+I have been lucky every single day since 1 August 2017.
+
+Happy Birthday, Betuuu. ♡
+
+This tiny universe I made — it's all yours.
+
+— Adi`

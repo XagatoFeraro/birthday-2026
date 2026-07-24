@@ -579,3 +579,235 @@
   0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
   100% { transform: translateY(110dvh) rotate(720deg); opacity: 0; }
 }
+
+/* ═══════════════════════════════════════
+   FLOATING GIFS — small, positioned, alive
+   ═══════════════════════════════════════ */
+.floating-gif {
+  animation: float-bob 3s ease-in-out infinite;
+}
+.floating-gif:nth-child(2n) { animation-duration: 3.8s; animation-delay: 0.6s; }
+.floating-gif:nth-child(3n) { animation-duration: 2.8s; animation-delay: 1.2s; }
+.floating-gif:nth-child(4n) { animation-duration: 4.2s; animation-delay: 0.3s; }
+
+/* Story scenes that hold real content + floating GIFs */
+.story-scene {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--sp-2xl) var(--sp-lg);
+}
+
+.story-scene--alt { background: var(--cream-warm); }
+.story-scene--dark { background: var(--ink); color: white; }
+.story-scene--pink { background: var(--pink-soft); }
+.story-scene--lavender { background: var(--lavender-soft); }
+.story-scene--sage { background: var(--sage-soft); }
+
+.story-content {
+  position: relative;
+  z-index: 10;
+  max-width: min(620px, 88vw);
+  text-align: center;
+}
+
+.story-content h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: var(--sp-md);
+}
+
+.story-content p {
+  font-size: var(--text-md);
+  color: var(--ink-soft);
+  line-height: 1.8;
+  margin: 0 auto;
+}
+
+.story-content .story-date {
+  font-size: var(--text-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pink-deep);
+  margin-bottom: var(--sp-sm);
+  display: block;
+}
+
+.story-content .story-note {
+  font-family: var(--font-note);
+  font-size: var(--text-lg);
+  color: var(--ink);
+  margin-top: var(--sp-md);
+  line-height: 1.7;
+}
+
+/* Talent card row */
+.talent-row {
+  display: flex;
+  gap: var(--sp-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--sp-lg);
+}
+
+.talent-card {
+  background: white;
+  border-radius: 20px;
+  padding: var(--sp-md) var(--sp-lg);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  text-align: center;
+  min-width: 140px;
+  transform: rotate(var(--tc-tilt, 0deg));
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.talent-card .tc-gif {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto var(--sp-xs);
+}
+
+.talent-card .tc-label {
+  font-family: var(--font-note);
+  font-size: var(--text-md);
+  color: var(--ink);
+  display: block;
+}
+
+.talent-card .tc-sub {
+  font-size: var(--text-xs);
+  color: var(--ink-ghost);
+  display: block;
+  margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .talent-row { gap: var(--sp-sm); }
+  .talent-card { min-width: 110px; padding: var(--sp-sm); }
+}
+
+/* "This is me when I see you" random floating gif */
+.me-when-gif {
+  position: fixed;
+  bottom: 120px;
+  right: 20px;
+  width: 100px;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transform: rotate(-5deg);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+}
+
+.me-when-gif img {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+.me-when-gif p {
+  font-family: var(--font-note);
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 3px;
+  line-height: 1.2;
+}
+
+/* The opening GIF scene */
+.opening-gif-wrap {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.opening-gif {
+  width: clamp(140px, 30vw, 220px);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  display: block;
+  opacity: 0;
+}
+
+.opening-message {
+  background: white;
+  border-radius: 20px 20px 20px 4px;
+  padding: var(--sp-sm) var(--sp-md);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  font-family: var(--font-note);
+  font-size: var(--text-lg);
+  color: var(--ink);
+  opacity: 0;
+  max-width: 280px;
+  text-align: center;
+  position: relative;
+}
+
+.opening-message::before {
+  content: '';
+  position: absolute;
+  top: -8px; left: 20px;
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid white;
+}
+
+/* Ragebait section */
+.ragebait-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-xl);
+  flex-wrap: wrap;
+  margin-top: var(--sp-lg);
+}
+
+.ragebait-gif {
+  width: clamp(100px, 20vw, 150px);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.ragebait-vs {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-style: italic;
+  color: var(--ink-ghost);
+  opacity: 0;
+}
+
+/* Story timeline connector */
+.timeline-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--sp-lg) 0;
+  gap: var(--sp-xs);
+}
+
+.tc-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--pink);
+}
+
+.tc-line {
+  width: 1px; height: 60px;
+  background: linear-gradient(to bottom, var(--pink), var(--lavender));
+}
