@@ -1,7 +1,7 @@
 // ─── Scene: Memory Timeline ───────────────────────────────────────────────────
-// Desktop: horizontal pinned camera — scroll drives x-translation directly.
-// Mobile/tablet: vertical full-screen memory sequence with depth reveals.
-// Height = PER_MEMORY_VH × count. Fully content-driven.
+// Desktop: scrubbed horizontal camera through cinematic memory scenes.
+// Mobile: vertical full-screen reveal sequence.
+// Height = PER_MEMORY_VH × count. Content-driven.
 
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -9,312 +9,211 @@ import { memories, type Memory } from '../data/memories'
 import { createImage, createVideo, observeVideo } from '../components/media'
 import { prefersReducedMotion } from '../utils/scroll'
 
-const PER_MEMORY_VH = 120  // scroll space per memory scene
-const BUFFER_VH     = 60   // entry + exit buffer
+const PER_MEMORY_VH = 110
+const BUFFER_VH     = 40
 
 export function initTimeline(): void {
   const section = document.getElementById('scene-timeline')
   const stage   = section?.querySelector<HTMLElement>('.timeline__stage')
   const track   = document.getElementById('timeline-track')
-  if (!section || !stage || !track) return
+  if (!section||!stage||!track) return
 
-  // Dynamic height — adapts to number of memories
   const totalVh = PER_MEMORY_VH * memories.length + BUFFER_VH
   section.style.height = `${totalVh}dvh`
 
-  // Build DOM first, then wire animations
-  buildTimelineDOM(track)
+  buildDOM(track)
 
   if (prefersReducedMotion) {
     track.classList.add('timeline__track--vertical')
     stage.style.cssText = 'position:relative;height:auto;overflow:visible'
-    track.querySelectorAll<HTMLElement>('.scene__text,.memory__overlay,.memory__note-paper,.memory__polaroid-frame')
-      .forEach(el => gsap.set(el, { opacity: 1, y: 0, scale: 1 }))
+    track.querySelectorAll<HTMLElement>('.mem-text,.mem-note-paper,.mem-polaroid-wrap')
+      .forEach(el => gsap.set(el, { opacity:1, y:0 }))
     return
   }
 
   gsap.matchMedia().add(
-    {
-      desktop: '(min-width: 1024px) and (pointer: fine)',
-      narrow:  '(max-width: 1023px), (pointer: coarse)',
-    },
+    { desktop:'(min-width:1024px) and (pointer:fine)', narrow:'(max-width:1023px),(pointer:coarse)' },
     (ctx) => {
-      const { desktop } = ctx.conditions as { desktop: boolean }
-
-      if (desktop) {
-        initHorizontal(section, stage!, track)
-      } else {
-        initVertical(section, stage!, track)
-      }
-
-      // Per-scene content animations — shared logic, param-driven
-      animateSceneContent(section, track, desktop)
-
-      // Cleanup when matchMedia context changes (resize / rotation)
+      const { desktop } = ctx.conditions as { desktop:boolean }
+      desktop ? initHorizontal(section, stage!, track) : initVertical(section, stage!, track)
+      animateContent(section, track, desktop)
       return () => {
-        ScrollTrigger.getAll()
-          .filter(st => st.vars.id?.toString().startsWith('timeline'))
-          .forEach(st => st.kill())
-        gsap.set(track, { x: 0 })
+        ScrollTrigger.getAll().filter(st => String(st.vars.id||'').startsWith('tl')).forEach(st => st.kill())
+        gsap.set(track, { x:0 })
       }
     }
   )
 }
 
-// ── DOM builder ──────────────────────────────────────────────────────────────
-function buildTimelineDOM(track: HTMLElement): void {
+function buildDOM(track: HTMLElement): void {
   track.innerHTML = ''
-  memories.forEach((memory, i) => {
-    const scene = buildMemoryScene(memory, i)
-    track.appendChild(scene)
-  })
+  memories.forEach((m, i) => track.appendChild(buildScene(m, i)))
 }
 
-function buildMemoryScene(memory: Memory, i: number): HTMLElement {
-  const scene = document.createElement('article')
-  scene.className = `memory memory--${memory.layout}`
-  scene.id = `memory-${memory.id}`
-  scene.dataset.index = String(i)
-  if (memory.accent) {
-    scene.style.background = memory.accent
-    scene.style.setProperty('--scene-accent', memory.accent)
-  }
+function buildScene(m: Memory, i: number): HTMLElement {
+  const el = document.createElement('article')
+  el.className = `memory memory--${m.layout}`
+  el.id = `memory-${m.id}`
+  el.dataset.index = String(i)
+  if (m.accent) { el.style.background = m.accent; el.style.setProperty('--card-bg', m.accent) }
 
-  switch (memory.layout) {
+  const date = m.date ? `<p class="scene-label">${m.date}</p>` : ''
+  const loc  = m.location ? `<p class="scene-label" style="margin-top:var(--sp-xs)">📍 ${m.location}</p>` : ''
+
+  switch (m.layout) {
     case 'full':
-      scene.innerHTML = `
-        <div class="memory__media"></div>
-        <div class="memory__overlay scene__text">
-          ${dateHtml(memory)}<h3 class="scene__title">${memory.title}</h3>
-          <p class="scene__description">${memory.description}</p>${locHtml(memory)}
-        </div>`
-      injectImg(scene.querySelector('.memory__media')!, memory)
+      el.innerHTML = `<div class="mem-bg"></div>
+        <div class="mem-text">${date}<h3 class="scene-title">${m.title}</h3>
+        <p class="scene-body">${m.description}</p>${loc}</div>`
+      injectImg(el.querySelector('.mem-bg')!, m)
       break
-
     case 'float':
-      scene.innerHTML = `
-        <div class="memory__media"></div>
-        <div class="scene__text float-text">
-          ${dateHtml(memory)}<h3 class="scene__title">${memory.title}</h3>
-          <p class="scene__description">${memory.description}</p>${locHtml(memory)}
-        </div>`
-      injectImg(scene.querySelector('.memory__media')!, memory)
+      el.innerHTML = `<div class="mem-photo"></div>
+        <div class="mem-text">${date}<h3 class="scene-title">${m.title}</h3>
+        <p class="scene-body">${m.description}</p>${loc}</div>`
+      injectImg(el.querySelector('.mem-photo')!, m)
       break
-
     case 'polaroid':
-      scene.innerHTML = `
-        <div class="memory__polaroid-frame" data-anim="polaroid">
-          <div class="polaroid-img"></div>
-          <p class="memory__polaroid-caption">${memory.title}</p>
+      el.innerHTML = `
+        <div class="mem-polaroid-wrap" style="--pol-tilt:${i%2===0?'-3deg':'2deg'}">
+          <div class="pol-img"></div>
+          <p class="mem-polaroid-caption">${m.title}</p>
         </div>
-        <div class="scene__text polaroid-meta">
-          ${dateHtml(memory)}<p class="scene__description">${memory.description}</p>
+        <div class="mem-text" style="text-align:center;margin-top:var(--sp-md)">
+          ${date}<p class="scene-body">${m.description}</p>
         </div>`
-      if (memory.image) injectImg(scene.querySelector('.polaroid-img')!, memory, 'width:100%;aspect-ratio:1;overflow:hidden')
+      if (m.image) {
+        const img = createImage({ src:m.image, alt:m.title })
+        img.style.cssText = 'width:100%;aspect-ratio:1;object-fit:cover;display:block'
+        el.querySelector('.pol-img')?.appendChild(img)
+      }
       break
-
     case 'note':
-      scene.innerHTML = `
-        <div class="memory__note-paper" data-anim="note">
-          <h3 class="scene__title">${memory.title}</h3>
-          ${dateHtml(memory)}
-          <p class="scene__description">${memory.description}</p>${locHtml(memory)}
+      el.innerHTML = `<div class="mem-note-paper">
+        <h3 class="scene-title">${m.title}</h3>${date}
+        <p class="scene-body">${m.description}</p>${loc}
         </div>`
       break
-
     case 'video':
-      scene.innerHTML = `
-        <div class="memory__video-wrap">
+      el.innerHTML = `
+        <div class="mem-video-wrap">
           <div class="video-slot"></div>
-          <button class="memory__play-btn" aria-label="Play video">
-            <div class="memory__play-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--color-ink)" aria-hidden="true">
-                <polygon points="5,3 19,12 5,21"/>
-              </svg>
-            </div>
+          <button class="mem-play-btn" aria-label="Play video">
+            <div class="mem-play-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="var(--ink)" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg></div>
           </button>
         </div>
-        <div class="scene__text" style="margin-top:var(--space-md)">
-          ${dateHtml(memory)}<h3 class="scene__title">${memory.title}</h3>
-          <p class="scene__description">${memory.description}</p>
+        <div class="mem-text" style="text-align:center">
+          ${date}<h3 class="scene-title">${m.title}</h3>
+          <p class="scene-body">${m.description}</p>
         </div>`
-      injectVideoEl(scene, memory)
+      injectVideo(el, m)
       break
-
     default:
-      scene.innerHTML = `
-        <div class="scene__text">
-          ${dateHtml(memory)}<h3 class="scene__title">${memory.title}</h3>
-          <p class="scene__description">${memory.description}</p>
-        </div>`
+      el.innerHTML = `<div class="mem-text">${date}<h3 class="scene-title">${m.title}</h3><p class="scene-body">${m.description}</p></div>`
   }
-
-  return scene
+  return el
 }
 
-function dateHtml(m: Memory): string {
-  return m.date ? `<p class="scene__date">${m.date}</p>` : ''
-}
-function locHtml(m: Memory): string {
-  return m.location ? `<p class="scene__location">📍 ${m.location}</p>` : ''
-}
-function injectImg(container: HTMLElement, memory: Memory, extraStyle = ''): void {
-  if (!memory.image) return
-  const img = createImage({ src: memory.image, alt: memory.title })
-  img.style.cssText = `width:100%;height:100%;object-fit:cover;display:block;${extraStyle}`
-  container.style.cssText += extraStyle
+function injectImg(container: HTMLElement, m: Memory): void {
+  if (!m.image) return
+  const img = createImage({ src:m.image, alt:m.title })
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
   container.appendChild(img)
 }
-function injectVideoEl(scene: HTMLElement, memory: Memory): void {
-  if (!memory.video) return
+
+function injectVideo(scene: HTMLElement, m: Memory): void {
+  if (!m.video) return
   const slot = scene.querySelector<HTMLElement>('.video-slot')!
-  const video = createVideo({ src: memory.video, poster: memory.image })
-  video.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
-  slot.appendChild(video)
-  observeVideo(video)
-
-  const playBtn = scene.querySelector<HTMLButtonElement>('.memory__play-btn')
-  if (playBtn) {
-    playBtn.addEventListener('click', () => {
-      if (video.paused) {
-        video.muted = false
-        video.play().catch(() => { video.muted = true; video.play() })
-        playBtn.style.opacity = '0'
-      } else {
-        video.pause()
-        playBtn.style.opacity = '1'
-      }
-    })
-  }
+  const vid  = createVideo({ src:m.video, poster:m.image })
+  vid.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block'
+  slot.appendChild(vid); observeVideo(vid)
+  const btn = scene.querySelector<HTMLButtonElement>('.mem-play-btn')
+  if (btn) btn.addEventListener('click', () => {
+    if (vid.paused) {
+      vid.muted = false; vid.play().catch(() => { vid.muted=true; vid.play() })
+      btn.style.opacity='0'
+    } else { vid.pause(); btn.style.opacity='1' }
+  })
 }
 
-// ── Horizontal camera (desktop) ──────────────────────────────────────────────
 function initHorizontal(section: HTMLElement, stage: HTMLElement, track: HTMLElement): void {
-  const scenes = track.querySelectorAll<HTMLElement>('.memory')
-  if (!scenes.length) return
-
-  const totalX = (scenes.length - 1) * window.innerWidth
-
-  // Use a scrubbed GSAP timeline rather than onUpdate for proper Lenis sync
-  const tl = gsap.timeline({
+  const count = track.querySelectorAll('.memory').length
+  if (!count) return
+  const totalX = (count-1) * window.innerWidth
+  gsap.timeline({
     scrollTrigger: {
-      id: 'timeline-horizontal',
-      trigger: section,
-      start: 'top top',
-      end: 'bottom top',
-      pin: stage,
-      scrub: 1.0,
-      invalidateOnRefresh: true,
+      id:'tl-horizontal', trigger:section, start:'top top', end:'bottom top',
+      pin:stage, scrub:1.2, invalidateOnRefresh:true,
     },
-  })
-
-  tl.to(track, {
-    x: -totalX,
-    ease: 'none',
-    force3D: true,
-  })
+  }).to(track, { x:-totalX, ease:'none', force3D:true })
 }
 
-// ── Vertical depth sequence (mobile + tablet) ────────────────────────────────
 function initVertical(section: HTMLElement, stage: HTMLElement, track: HTMLElement): void {
-  // Override sticky CSS — vertical uses natural document flow
   stage.style.position = 'relative'
   stage.style.height   = 'auto'
   stage.style.overflow = 'visible'
   track.classList.add('timeline__track--vertical')
-  // Let section height be determined by content, not fixed dvh
   section.style.height = 'auto'
-  section.style.minHeight = '0'
 }
 
-// ── Per-scene content animations ─────────────────────────────────────────────
-function animateSceneContent(section: HTMLElement, track: HTMLElement, isHorizontal: boolean): void {
-  const scenes = track.querySelectorAll<HTMLElement>('.memory')
-  const count  = scenes.length
-  if (!count) return
+function animateContent(section: HTMLElement, track: HTMLElement, isH: boolean): void {
+  const scenes = Array.from(track.querySelectorAll<HTMLElement>('.memory'))
+  const count  = scenes.length; if (!count) return
 
   scenes.forEach((scene, i) => {
-    const textEl    = scene.querySelector<HTMLElement>('.scene__text, .memory__overlay, .float-text, .polaroid-meta')
-    const polaroid  = scene.querySelector<HTMLElement>('[data-anim="polaroid"]')
-    const note      = scene.querySelector<HTMLElement>('[data-anim="note"]')
-    const mediaEl   = scene.querySelector<HTMLElement>('.memory__media')
+    const textEl   = scene.querySelector<HTMLElement>('.mem-text')
+    const polaroid = scene.querySelector<HTMLElement>('.mem-polaroid-wrap')
+    const note     = scene.querySelector<HTMLElement>('.mem-note-paper')
+    const bgEl     = scene.querySelector<HTMLElement>('.mem-bg')
 
-    if (isHorizontal) {
-      // ── Horizontal: triggers based on section scroll % per-scene ──────────
-      const frac  = 1 / count
-      const s     = i * frac          // scene start fraction
-      const enter = s + frac * 0.05   // 5% into the scene's window
-      const mid   = s + frac * 0.25   // 25% in — fully revealed
-      const exit  = s + frac * 0.80   // 80% in — start fading
-      const end   = s + frac * 0.98
-
-      const pct = (f: number) => `${(f * 100).toFixed(1)}% top`
+    if (isH) {
+      const frac = 1/count
+      const s = i*frac
+      const p = (f:number) => `${(f*100).toFixed(1)}% top`
 
       if (textEl) {
-        gsap.set(textEl, { opacity: 0, y: 28 })
-        gsap.to(textEl, {
-          opacity: 1, y: 0, ease: 'power2.out',
-          scrollTrigger: { id: `timeline-text-in-${i}`, trigger: section, start: pct(enter), end: pct(mid), scrub: 0.7 },
-        })
-        // Fade out before leaving (skip last scene — it exits into birthday)
-        if (i < count - 1) {
-          gsap.to(textEl, {
-            opacity: 0, y: -20, ease: 'power1.in',
-            scrollTrigger: { id: `timeline-text-out-${i}`, trigger: section, start: pct(exit), end: pct(end), scrub: 0.7 },
-          })
-        }
+        gsap.set(textEl, { opacity:0, y:32 })
+        gsap.to(textEl, { opacity:1, y:0, ease:'power2.out',
+          scrollTrigger:{ id:`tl-ti${i}`, trigger:section, start:p(s+frac*.05), end:p(s+frac*.25), scrub:.7 } })
+        if (i < count-1)
+          gsap.to(textEl, { opacity:0, y:-20, ease:'power1.in',
+            scrollTrigger:{ id:`tl-to${i}`, trigger:section, start:p(s+frac*.78), end:p(s+frac*.97), scrub:.7 } })
       }
-
       if (polaroid) {
-        gsap.set(polaroid, { rotate: -7, scale: 0.86, opacity: 0 })
-        gsap.to(polaroid, {
-          rotate: -2, scale: 1, opacity: 1, ease: 'power2.out',
-          scrollTrigger: { id: `timeline-polaroid-${i}`, trigger: section, start: pct(enter), end: pct(mid), scrub: 0.8 },
-        })
+        gsap.set(polaroid, { rotate:-8, scale:.84, opacity:0 })
+        gsap.to(polaroid,  { rotate:Number(polaroid.style.getPropertyValue('--pol-tilt')||'-3'), scale:1, opacity:1, ease:'power2.out',
+          scrollTrigger:{ id:`tl-p${i}`, trigger:section, start:p(s+frac*.05), end:p(s+frac*.28), scrub:.8 } })
       }
-
       if (note) {
-        gsap.set(note, { rotate: 2.5, scale: 0.9, opacity: 0 })
-        gsap.to(note, {
-          rotate: 0.8, scale: 1, opacity: 1, ease: 'power2.out',
-          scrollTrigger: { id: `timeline-note-${i}`, trigger: section, start: pct(enter), end: pct(mid), scrub: 0.8 },
-        })
+        gsap.set(note, { rotate:2.5, scale:.9, opacity:0 })
+        gsap.to(note,  { rotate:.8, scale:1, opacity:1, ease:'power2.out',
+          scrollTrigger:{ id:`tl-n${i}`, trigger:section, start:p(s+frac*.05), end:p(s+frac*.28), scrub:.8 } })
       }
-
-      // Parallax on full-bleed photo background
-      if (mediaEl && scene.classList.contains('memory--full')) {
-        gsap.set(mediaEl, { scale: 1.1 })
-        gsap.to(mediaEl, {
-          scale: 1, ease: 'none',
-          scrollTrigger: { id: `timeline-parallax-${i}`, trigger: section, start: pct(s), end: pct(s + frac * 0.6), scrub: 1.5 },
-        })
+      if (bgEl && scene.classList.contains('memory--full')) {
+        gsap.set(bgEl, { scale:1.1 })
+        gsap.to(bgEl,  { scale:1, ease:'none',
+          scrollTrigger:{ id:`tl-px${i}`, trigger:section, start:p(s), end:p(s+frac*.6), scrub:1.5 } })
       }
-
     } else {
-      // ── Vertical: IntersectionObserver for each scene ─────────────────────
-      if (textEl)   gsap.set(textEl,   { opacity: 0, y: 30 })
-      if (polaroid) gsap.set(polaroid, { rotate: -7, scale: 0.86, opacity: 0 })
-      if (note)     gsap.set(note,     { rotate: 2.5, scale: 0.9, opacity: 0 })
+      // Vertical
+      if (textEl)   gsap.set(textEl,   { opacity:0, y:32 })
+      if (polaroid) gsap.set(polaroid, { rotate:-8, scale:.84, opacity:0 })
+      if (note)     gsap.set(note,     { rotate:2.5, scale:.9, opacity:0 })
 
-      // Root margin gives a generous buffer — avoids popping on fast scroll
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          const dir = entry.boundingClientRect.top > 0 ? 1 : -1
-          if (entry.isIntersecting) {
-            if (textEl)   gsap.to(textEl,   { opacity: 1, y: 0,             duration: 0.65, ease: 'power2.out' })
-            if (polaroid) gsap.to(polaroid, { rotate: -2, scale: 1, opacity: 1, duration: 0.7,  ease: 'power2.out' })
-            if (note)     gsap.to(note,     { rotate: 0.8, scale: 1, opacity: 1, duration: 0.7,  ease: 'power2.out' })
-          } else {
-            if (textEl)   gsap.to(textEl,   { opacity: 0, y: 22 * dir,      duration: 0.4,  ease: 'power1.in' })
-            if (polaroid) gsap.to(polaroid, { rotate: -7, scale: 0.86, opacity: 0, duration: 0.35, ease: 'power1.in' })
-            if (note)     gsap.to(note,     { rotate: 2.5, scale: 0.9, opacity: 0, duration: 0.35, ease: 'power1.in' })
-          }
-        },
-        { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
-      )
-      observer.observe(scene)
-      // Disconnect after page unload to prevent leaks (SPA-style cleanup)
-      window.addEventListener('beforeunload', () => observer.disconnect(), { once: true })
+      const obs = new IntersectionObserver(([entry]) => {
+        const dir = entry.boundingClientRect.top > 0 ? 1 : -1
+        if (entry.isIntersecting) {
+          if (textEl)   gsap.to(textEl,   { opacity:1, y:0, duration:.65, ease:'power2.out' })
+          if (polaroid) gsap.to(polaroid, { rotate:-3, scale:1, opacity:1, duration:.7, ease:'power2.out' })
+          if (note)     gsap.to(note,     { rotate:.8, scale:1, opacity:1, duration:.7, ease:'power2.out' })
+        } else {
+          if (textEl)   gsap.to(textEl,   { opacity:0, y:22*dir, duration:.4, ease:'power1.in' })
+          if (polaroid) gsap.to(polaroid, { rotate:-8, scale:.84, opacity:0, duration:.35, ease:'power1.in' })
+          if (note)     gsap.to(note,     { rotate:2.5, scale:.9, opacity:0, duration:.35, ease:'power1.in' })
+        }
+      }, { threshold:.2, rootMargin:'0px 0px -10% 0px' })
+      obs.observe(scene)
+      window.addEventListener('beforeunload', () => obs.disconnect(), { once:true })
     }
   })
 }

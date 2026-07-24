@@ -1,108 +1,50 @@
-// ─── Scene: Meet ─────────────────────────────────────────────────────────────
-// "Tanisha." → "But I call her something else." → "Betuuu."
-// 300dvh scroll space. Single pin. All transitions scrub-driven and reversible.
+// ─── Scene: Who Is Betuuu ────────────────────────────────────────────────────
+// "Tanisha." → "But I call her something else." → "Betuuu." 
+// 250dvh — tighter than before. Each beat feels earned.
 
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { prefersReducedMotion } from '../utils/scroll'
 
 export function initMeet(): void {
-  const section  = document.getElementById('scene-meet')
-  const stage    = section?.querySelector<HTMLElement>('.meet__stage')
-  const nameEl   = section?.querySelector<HTMLElement>('.meet__word--name')
-  const bridgeEl = section?.querySelector<HTMLElement>('.meet__word--bridge')
-  const nickEl   = section?.querySelector<HTMLElement>('.meet__word--nickname')
+  const section  = document.getElementById('scene-who')
+  const stage    = section?.querySelector<HTMLElement>('.who__stage')
+  const nameEl   = section?.querySelector<HTMLElement>('.who__word--name')
+  const bridgeEl = section?.querySelector<HTMLElement>('.who__word--bridge')
+  const nickEl   = section?.querySelector<HTMLElement>('.who__word--nick')
 
-  if (!section || !stage || !nameEl || !bridgeEl || !nickEl) return
+  if (!section||!stage||!nameEl||!bridgeEl||!nickEl) return
 
-  // ── Single pin — one ScrollTrigger, no duplicates ────────────────────────
-  ScrollTrigger.create({
-    trigger: section,
-    start: 'top top',
-    end: 'bottom top',
-    pin: stage,
-  })
+  ScrollTrigger.create({ trigger:section, start:'top top', end:'bottom top', pin:stage })
 
   if (prefersReducedMotion) {
-    gsap.set([nameEl, bridgeEl, nickEl], { opacity: 1, y: 0, scale: 1, filter: 'none' })
+    gsap.set([nameEl,bridgeEl,nickEl], { opacity:1, y:0, scale:1, filter:'none' })
     return
   }
 
-  // ── Initial states ───────────────────────────────────────────────────────
-  gsap.set(nameEl,   { opacity: 0, y: 50,  scale: 0.92 })
-  gsap.set(bridgeEl, { opacity: 0, y: 30 })
-  gsap.set(nickEl,   { opacity: 0, y: 60,  scale: 0.88, filter: 'blur(12px)' })
+  gsap.set(nameEl,   { opacity:0, y:60, scale:0.9 })
+  gsap.set(bridgeEl, { opacity:0, y:30 })
+  gsap.set(nickEl,   { opacity:0, y:80, scale:0.85, filter:'blur(16px)' })
 
-  // All beats use the same scrub value (0.8) for consistent reversal feel.
-  // Each beat is a separate timeline with its own trigger window.
+  const S = 0.8 // uniform scrub
 
-  // ── Beat 1 (0–28%): "Tanisha." rises in ─────────────────────────────────
-  gsap.to(nameEl, {
-    opacity: 1, y: 0, scale: 1,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: section,
-      start: 'top top',
-      end: '28% top',
-      scrub: 0.8,
-    },
-  })
+  // Beat 1 (0–30%): Name rises
+  gsap.to(nameEl, { opacity:1, y:0, scale:1, ease:'power3.out',
+    scrollTrigger:{ trigger:section, start:'top top', end:'30% top', scrub:S } })
 
-  // ── Beat 2 (18–44%): name softens, bridge appears ───────────────────────
-  gsap.to(nameEl, {
-    opacity: 0.3, scale: 0.88, y: -25,
-    ease: 'power1.inOut',
-    scrollTrigger: {
-      trigger: section,
-      start: '18% top',
-      end: '44% top',
-      scrub: 0.8,
-    },
-  })
+  // Beat 2 (20–48%): name dims, bridge appears
+  gsap.to(nameEl, { opacity:0.25, scale:0.86, y:-30, ease:'power1.inOut',
+    scrollTrigger:{ trigger:section, start:'20% top', end:'48% top', scrub:S } })
+  gsap.to(bridgeEl, { opacity:1, y:0, ease:'power2.out',
+    scrollTrigger:{ trigger:section, start:'26% top', end:'50% top', scrub:S } })
 
-  gsap.to(bridgeEl, {
-    opacity: 1, y: 0,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: section,
-      start: '24% top',
-      end: '46% top',
-      scrub: 0.8,
-    },
-  })
+  // Beat 3 (44–76%): BETUUU explodes in
+  gsap.to([nameEl,bridgeEl], { opacity:0, y:-40, ease:'power2.in',
+    scrollTrigger:{ trigger:section, start:'44% top', end:'66% top', scrub:S } })
+  gsap.to(nickEl, { opacity:1, y:0, scale:1, filter:'blur(0px)', ease:'power3.out',
+    scrollTrigger:{ trigger:section, start:'52% top', end:'76% top', scrub:S } })
 
-  // ── Beat 3 (40–72%): "Betuuu." explodes in, others vanish ───────────────
-  gsap.to([nameEl, bridgeEl], {
-    opacity: 0, y: -35,
-    ease: 'power2.in',
-    scrollTrigger: {
-      trigger: section,
-      start: '40% top',
-      end: '62% top',
-      scrub: 0.8,
-    },
-  })
-
-  gsap.to(nickEl, {
-    opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
-    ease: 'power3.out',
-    scrollTrigger: {
-      trigger: section,
-      start: '50% top',
-      end: '74% top',
-      scrub: 0.8,
-    },
-  })
-
-  // ── Beat 4 (76–100%): "Betuuu." lifts out as we transition forward ──────
-  gsap.to(nickEl, {
-    opacity: 0, y: -60, scale: 0.94,
-    ease: 'power2.in',
-    scrollTrigger: {
-      trigger: section,
-      start: '76% top',
-      end: '98% top',
-      scrub: 0.8,
-    },
-  })
+  // Beat 4 (78–98%): Betuuu exits upward
+  gsap.to(nickEl, { opacity:0, y:-70, scale:0.93, ease:'power2.in',
+    scrollTrigger:{ trigger:section, start:'78% top', end:'98% top', scrub:S } })
 }

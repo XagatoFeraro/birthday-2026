@@ -1,67 +1,68 @@
-/* ─── Design Tokens ──────────────────────────────────────────────────────────
-   Single source of truth for all visual values.
-   ─────────────────────────────────────────────────────────────────────────── */
-
 :root {
-  /* Palette — warm, romantic, dreamy */
-  --color-bg:           #fdf8f3;   /* warm cream */
-  --color-bg-deep:      #f5ede2;   /* slightly warmer cream */
-  --color-ink:          #3a2e2b;   /* warm near-black */
-  --color-ink-soft:     #7a6b65;   /* muted brown-grey */
-  --color-ink-ghost:    #b8a89f;   /* very muted, for hints */
+  /* ── Palette ── */
+  --cream:        #fdf6ee;
+  --cream-deep:   #f7ead8;
+  --cream-warm:   #fef0e0;
+  --ink:          #2d1f1a;
+  --ink-soft:     #6b5249;
+  --ink-ghost:    #b09086;
 
-  --color-blush:        #f7c6c7;   /* soft pink */
-  --color-peach:        #f9d8c0;   /* warm peach */
-  --color-lavender:     #d9d0e8;   /* muted lavender */
-  --color-sage:         #c8d8c4;   /* muted green */
-  --color-butter:       #f5e6b0;   /* soft warm yellow */
+  --pink:         #f4a7b0;
+  --pink-deep:    #e8788a;
+  --pink-soft:    #fde8ec;
+  --peach:        #f8c8a0;
+  --peach-soft:   #fde8d4;
+  --lavender:     #c8b8e8;
+  --lavender-soft:#ede8f8;
+  --sage:         #a8c8a4;
+  --sage-soft:    #d8ead6;
+  --butter:       #f8e070;
+  --butter-soft:  #fdf3b0;
+  --coral:        #f08060;
 
-  /* Accent — the emotional highlight color (can be overridden per-scene) */
-  --color-accent:       #e8a0a8;
-  --color-accent-soft:  #f2d0d4;
+  /* Semantic */
+  --color-bg:         var(--cream);
+  --color-bg-deep:    var(--cream-deep);
+  --color-ink:        var(--ink);
+  --color-ink-soft:   var(--ink-soft);
+  --color-ink-ghost:  var(--ink-ghost);
+  --color-accent:     var(--pink-deep);
+  --color-accent-soft:var(--pink-soft);
+  --color-blush:      var(--pink);
+  --color-peach:      var(--peach);
+  --color-lavender:   var(--lavender);
+  --color-sage:       var(--sage);
+  --color-butter:     var(--butter);
 
-  /* Typography */
-  --font-display: 'Cormorant Garamond', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  /* ── Typography ── */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body:    'Lato', 'Helvetica Neue', Arial, sans-serif;
-  --font-note:    'Caveat', 'Comic Sans MS', cursive;   /* handwritten moments */
+  --font-note:    'Caveat', cursive;
 
-  /* Fluid type scale using clamp(min, preferred, max)
-     Base: 16px mobile → 18px desktop                  */
-  --text-xs:   clamp(0.65rem,  0.6rem  + 0.25vw, 0.75rem);
-  --text-sm:   clamp(0.8rem,   0.75rem + 0.25vw, 0.9rem);
-  --text-base: clamp(0.95rem,  0.85rem + 0.5vw,  1.125rem);
-  --text-md:   clamp(1.1rem,   0.95rem + 0.75vw, 1.375rem);
-  --text-lg:   clamp(1.3rem,   1.1rem  + 1vw,    1.75rem);
-  --text-xl:   clamp(1.75rem,  1.4rem  + 1.5vw,  2.5rem);
-  --text-2xl:  clamp(2.25rem,  1.75rem + 2.5vw,  4rem);
-  --text-3xl:  clamp(3rem,     2.25rem + 4vw,    6.5rem);
-  --text-hero: clamp(3.5rem,   2.5rem  + 5vw,    9rem);
+  --text-xs:   clamp(0.65rem, 0.6rem + 0.25vw,  0.8rem);
+  --text-sm:   clamp(0.8rem,  0.75rem + 0.3vw,  1rem);
+  --text-base: clamp(1rem,    0.9rem + 0.5vw,   1.2rem);
+  --text-md:   clamp(1.15rem, 1rem + 0.75vw,    1.5rem);
+  --text-lg:   clamp(1.4rem,  1.1rem + 1.2vw,   2rem);
+  --text-xl:   clamp(1.9rem,  1.4rem + 2vw,     3rem);
+  --text-2xl:  clamp(2.5rem,  1.8rem + 3vw,     5rem);
+  --text-3xl:  clamp(3.5rem,  2.4rem + 4.5vw,   7.5rem);
+  --text-hero: clamp(4rem,    2.8rem + 6vw,      10rem);
 
-  /* Spacing */
-  --space-xs:  clamp(0.5rem, 1vw, 0.75rem);
-  --space-sm:  clamp(0.75rem, 2vw, 1.25rem);
-  --space-md:  clamp(1.25rem, 3vw, 2rem);
-  --space-lg:  clamp(2rem,    4vw, 3.5rem);
-  --space-xl:  clamp(3rem,    6vw, 6rem);
-  --space-2xl: clamp(5rem,    10vw, 10rem);
+  /* ── Spacing ── */
+  --sp-xs:  clamp(0.4rem,  0.8vw,  0.6rem);
+  --sp-sm:  clamp(0.8rem,  1.5vw,  1.2rem);
+  --sp-md:  clamp(1.2rem,  2.5vw,  2rem);
+  --sp-lg:  clamp(2rem,    4vw,    3.5rem);
+  --sp-xl:  clamp(3rem,    6vw,    6rem);
+  --sp-2xl: clamp(5rem,    10vw,   10rem);
 
-  /* Easing */
-  --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── Easing ── */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* Transitions */
-  --duration-fast:   180ms;
-  --duration-base:   320ms;
-  --duration-slow:   600ms;
-
-  /* Z-index layers */
-  --z-bg:          0;
-  --z-scene:       10;
-  --z-content:     20;
-  --z-particles:   25;
-  --z-cat:         30;
-  --z-ui:          40;
-  --z-nav:         50;
-  --z-overlay:     60;
+  /* ── Z-layers ── */
+  --z-bg: 0; --z-deco: 5; --z-scene: 10;
+  --z-content: 20; --z-cat: 30; --z-ui: 40; --z-nav: 50;
 }
