@@ -10,6 +10,8 @@ import { loadFonts }      from './utils/fonts'
 import { initScroll }     from './utils/scroll'
 import { createNav }      from './components/nav'
 import { MEME_CATS, createMemeCatCard } from './components/memecats'
+import { initIntro }      from './scenes/intro'
+import { initMeet }       from './scenes/meet'
 import { initTimeline }   from './scenes/timeline'
 import { initBirthday }   from './scenes/birthday'
 import { birthdayMessage, ourVideo } from './data/memories'
@@ -80,23 +82,15 @@ function buildScaffold(): void {
   if (!app) return
   app.innerHTML = `
 
-  <!-- ═══════════════════════════════════════
-       1. OPENING — Cat waves, "Hey Betuuu"
-  ═══════════════════════════════════════ -->
+  <!-- 1. INTRO — Kitten + Hey Betuuu -->
   <section id="scene-intro" class="scene">
     <div class="intro__stage">
       <div class="intro__bg"></div>
       <div class="intro__deco"></div>
-
-      <div class="opening-cat-wrap reveal-on-load" id="opening-cat">
-        ${gif(GID.opening, 180, '', 0, 'margin:0 auto')}
-      </div>
-
-      <div class="opening-message reveal-on-load" id="opening-msg">
-        <span class="opening-msg-line">psst... hey Betuuu 👀</span>
-        <span class="opening-msg-line opening-msg-main">I made something<br/>just for you ♡</span>
-      </div>
-
+      <div class="intro__cat-wrap"></div>
+      <p class="intro__whisper">pspspsps... 👀</p>
+      <h1 class="intro__headline">Hey Betuuu&nbsp;♡</h1>
+      <p class="intro__sub">I made something just for you.</p>
       <div class="intro__scroll-hint" aria-hidden="true">
         <span>scroll</span>
         <div class="intro__scroll-line"></div>
@@ -104,11 +98,8 @@ function buildScaffold(): void {
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       2. WHO — just Tanisha. Then Betuuu.
-       (NO bridge line per request)
-  ═══════════════════════════════════════ -->
-  <section id="scene-who" class="scene" style="height:220dvh">
+  <!-- 2. WHO IS BETUUU -->
+  <section id="scene-who" class="scene">
     <div class="who__stage">
       <div class="who__bg"></div>
       <span class="who__word who__word--name" id="w-name">Tanisha.</span>
@@ -271,24 +262,25 @@ function buildScaffold(): void {
       <p style="font-family:var(--font-note);font-size:var(--t-lg);color:rgba(255,255,255,0.5)">7 years. 9 years. ∞ more.</p>
     </div>
 
-    <!-- Portrait reel -->
-    <div class="our-video-wrap" id="our-video-wrap">
-      <div class="reel-glow"></div>
-      <video
-        id="our-video"
-        src="${import.meta.env.BASE_URL}${ourVideo.src}"
-        poster="${import.meta.env.BASE_URL}${ourVideo.poster}"
-        playsinline
-        webkit-playsinline
-        preload="none"
-        loop
-      ></video>
-      <button class="our-video-btn" id="our-video-btn" aria-label="Play video">
-        <div class="our-video-play-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
-        </div>
-      </button>
-      <div class="no-video-label" id="no-video-label" style="display:none">🎬 video uploading...</div>
+    <!-- Portrait reel in phone frame -->
+    <div class="our-video-phone">
+      <div class="our-video-wrap" id="our-video-wrap">
+        <video
+          id="our-video"
+          src="${import.meta.env.BASE_URL}${ourVideo.src}"
+          poster="${import.meta.env.BASE_URL}${ourVideo.poster}"
+          playsinline
+          webkit-playsinline
+          preload="none"
+          loop
+        ></video>
+        <button class="our-video-btn" id="our-video-btn" aria-label="Play video">
+          <div class="our-video-play-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+          </div>
+        </button>
+        <div class="no-video-label" id="no-video-label">🎬 video uploading...</div>
+      </div>
     </div>
   </section>
 
@@ -330,83 +322,6 @@ function buildScaffold(): void {
     </div>
   </section>
   `
-}
-
-// ── Opening scene animation ────────────────────────────────────────────────────
-function initOpeningScene(): void {
-  const cat  = document.getElementById('opening-cat')
-  const msg  = document.getElementById('opening-msg')
-  const hint = document.querySelector<HTMLElement>('.intro__scroll-hint')
-  const bg   = document.querySelector<HTMLElement>('.intro__bg')
-  const deco = document.querySelector<HTMLElement>('.intro__deco')
-  const stage = document.querySelector<HTMLElement>('.intro__stage')
-
-  // Petals
-  if (deco) {
-    const colors = ['#f4a7b0','#f8c8a0','#c8b8e8','#a8c8a4','#fde068']
-    for (let i = 0; i < 20; i++) {
-      const p = document.createElement('div')
-      p.className = 'petal'
-      p.style.cssText = `left:${5+Math.random()*90}%;bottom:${Math.random()*35}%;
-        background:${colors[i%colors.length]};transform:rotate(${Math.random()*360}deg);
-        animation:petal-drift ${3+Math.random()*4}s ${Math.random()*5}s ease-in-out infinite;
-        width:${6+Math.random()*9}px;height:${9+Math.random()*12}px`
-      deco.appendChild(p)
-    }
-  }
-
-  // Pin intro
-  const section = document.getElementById('scene-intro')!
-  section.style.height = '140dvh'
-  if (stage) {
-    ScrollTrigger.create({ trigger:section, start:'top top', end:'bottom top', pin:stage })
-  }
-
-  // Entrance
-  if (!cat || !msg) return
-  gsap.set([cat, msg, hint, bg].filter(Boolean), { opacity:0 })
-  gsap.set(cat, { y:30, scale:0.8 })
-  gsap.set(msg, { y:20 })
-
-  const atTop = window.scrollY < window.innerHeight * 0.12
-  if (atTop) {
-    gsap.timeline({ delay:0.2 })
-      .to(bg,   { opacity:1, duration:1.4, ease:'power2.out' })
-      .to(cat,  { opacity:1, y:0, scale:1, duration:1.0, ease:'back.out(1.3)' }, '-=1.0')
-      .to(msg,  { opacity:1, y:0, duration:0.8, ease:'power2.out' }, '-=0.2')
-      .to(hint, { opacity:1, duration:0.6 }, '+=0.4')
-  } else {
-    gsap.set([cat, msg, hint, bg].filter(Boolean), { opacity:1, y:0, scale:1 })
-  }
-
-  // Scroll exit
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'50% top', end:'bottom top', scrub:0.7 } })
-    .to([cat, msg], { opacity:0, y:-40, stagger:0.05, ease:'power2.in' }, 0)
-    .to(bg,  { opacity:0 }, 0)
-  gsap.to(hint, { opacity:0, scrollTrigger:{ trigger:section, start:'8% top', end:'22% top', scrub:0.4 } })
-}
-
-// ── Who scene ─────────────────────────────────────────────────────────────────
-function initWhoScene(): void {
-  const section  = document.getElementById('scene-who')
-  const stage    = section?.querySelector<HTMLElement>('.who__stage')
-  const nameEl   = document.getElementById('w-name')
-  const nickEl   = document.getElementById('w-nick')
-  if (!section||!stage||!nameEl||!nickEl) return
-
-  ScrollTrigger.create({ trigger:section, start:'top top', end:'bottom top', pin:stage })
-
-  gsap.set(nameEl, { opacity:0, y:50, scale:0.9 })
-  gsap.set(nickEl, { opacity:0, y:80, scale:0.85, filter:'blur(16px)' })
-  const S = 0.8
-  gsap.to(nameEl, { opacity:1, y:0, scale:1, ease:'power3.out',
-    scrollTrigger:{ trigger:section, start:'top top', end:'28% top', scrub:S } })
-  gsap.to(nameEl, { opacity:0.15, scale:0.82, y:-40, ease:'power2.in',
-    scrollTrigger:{ trigger:section, start:'30% top', end:'55% top', scrub:S } })
-  gsap.to(nickEl, { opacity:1, y:0, scale:1, filter:'blur(0px)', ease:'power3.out',
-    scrollTrigger:{ trigger:section, start:'50% top', end:'80% top', scrub:S } })
-  gsap.to(nickEl, { opacity:0, y:-60, ease:'power2.in',
-    scrollTrigger:{ trigger:section, start:'82% top', end:'98% top', scrub:S } })
 }
 
 // ── Personality / meme cats ────────────────────────────────────────────────────
@@ -576,12 +491,12 @@ function init(): void {
   buildScaffold()
   initScroll()
 
-  initOpeningScene()
-  initWhoScene()
+  initIntro()       // intro.ts — kitten entrance, petals
+  initMeet()        // meet.ts  — Tanisha → Betuuu
   initPersonalityScene()
   initStoryScenes()
   initTimeline()
-  initBirthday()
+  initBirthday()    // birthday.ts — climax
   initFinalScene()
 
   document.body.appendChild(createNav())

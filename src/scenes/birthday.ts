@@ -1,26 +1,24 @@
-// ─── Scene: Birthday ─────────────────────────────────────────────────────────
-// The earned emotional climax. 280dvh. Bloom, cats, confetti.
-
+// ─── Scene: Birthday Climax ───────────────────────────────────────────────────
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { createPartyCats } from '../components/memecats'
 import { prefersReducedMotion } from '../utils/scroll'
 
 function spawnConfetti(container: HTMLElement): void {
-  const colors = ['#f4a7b0','#f8c8a0','#c8b8e8','#a8c8a4','#f8e070','#f08060','#88ccff']
-  const shapes = ['4px','50%','2px']
-  for (let i = 0; i < 60; i++) {
+  const colors = ['#f2c4ce','#f5c4a0','#c0aed8','#9ab89a','#f5dc80','#f08060','#88ccff','#fde8ec']
+  for (let i = 0; i < 70; i++) {
     const p = document.createElement('div')
     p.className = 'confetti-piece'
-    const color = colors[Math.floor(Math.random()*colors.length)]
-    const size  = 6 + Math.random()*8
+    const size = 6 + Math.random() * 9
     p.style.cssText = `
       left:${Math.random()*100}%;
-      top:${-20 + Math.random()*30}px;
-      width:${size}px; height:${size * (Math.random()>0.5?2.5:1)}px;
-      background:${color};
-      border-radius:${shapes[Math.floor(Math.random()*shapes.length)]};
-      animation:confetti-fall ${2+Math.random()*3}s ${Math.random()*2}s ease-in forwards;
+      top:${-10 - Math.random()*20}px;
+      width:${size}px;
+      height:${size * (Math.random()>0.4 ? 2.5 : 1)}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>0.5?'50%':'3px'};
+      animation:confetti-fall ${2.2+Math.random()*3}s ${Math.random()*2.5}s ease-in forwards;
+      opacity:1;
     `
     container.appendChild(p)
   }
@@ -35,70 +33,60 @@ export function initBirthday(): void {
   const greeting = section?.querySelector<HTMLElement>('.birthday__greeting')
   const nameEl   = section?.querySelector<HTMLElement>('.birthday__name')
   const catRow   = section?.querySelector<HTMLElement>('.birthday__cat-row')
-
   if (!section||!stage||!bloom||!dateEl||!greeting||!nameEl) return
 
-  // Inject party cats
+  // Party cats
   if (catRow) {
     const cats = createPartyCats()
-    Array.from(cats.children).forEach(c => catRow.appendChild(c))
+    while (cats.firstChild) catRow.appendChild(cats.firstChild)
   }
 
   ScrollTrigger.create({
-    id: 'birthday-pin',
-    trigger: section, start: 'top top', end: 'bottom top',
-    pin: stage, anticipatePin: 1, invalidateOnRefresh: true,
+    id:'birthday-pin', trigger:section, start:'top top', end:'bottom top',
+    pin:stage, anticipatePin:1, invalidateOnRefresh:true,
   })
 
   if (prefersReducedMotion) {
-    gsap.set([dateEl,greeting,nameEl,bloom,catRow], { opacity:1, y:0, scale:1, filter:'none' })
-    gsap.set(bloom, { opacity:0.5, scale:1 })
-    return
+    gsap.set([dateEl,greeting,nameEl,catRow], { opacity:1, y:0, scale:1, filter:'none' })
+    gsap.set(bloom, { opacity:0.5, scale:1 }); return
   }
 
-  // Initial states
-  gsap.set(bloom,   { opacity:0, scale:0.1 })
-  gsap.set(dateEl,  { opacity:0, y:50, scale:0.88 })
-  gsap.set(greeting,{ opacity:0, y:70, scale:0.86 })
-  gsap.set(nameEl,  { opacity:0, y:90, scale:0.82, filter:'blur(10px)' })
-  gsap.set(catRow,  { opacity:0, y:30 })
+  gsap.set(bloom,   { opacity:0, scale:0.08 })
+  gsap.set(dateEl,  { opacity:0, y:55, letterSpacing:'0.6em' })
+  gsap.set(greeting,{ opacity:0, y:70, scale:0.84 })
+  gsap.set(nameEl,  { opacity:0, y:90, scale:0.78, filter:'blur(12px)' })
+  gsap.set(catRow,  { opacity:0, y:35, scale:0.9 })
 
-  const SCRUB = 0.9
+  const S = 0.95
 
-  // Beat 1 (0–22%): bloom pulses in, date floats up
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'top top', end:'22% top', scrub:SCRUB } })
-    .to(bloom,  { opacity:0.6, scale:0.6, ease:'power2.out' }, 0)
-    .to(dateEl, { opacity:1, y:0, scale:1, ease:'power3.out' }, 0.3)
+  // Beat 1: bloom seeds, date rises with letter-spacing animation
+  gsap.timeline({ scrollTrigger:{ trigger:section, start:'top top', end:'24% top', scrub:S } })
+    .to(bloom,  { opacity:0.55, scale:0.55, ease:'power2.out' }, 0)
+    .to(dateEl, { opacity:1, y:0, letterSpacing:'0.35em', ease:'power3.out' }, 0.2)
 
-  // Beat 2 (18–52%): "Happy Birthday," rises, bloom expands
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'18% top', end:'52% top', scrub:SCRUB } })
-    .to(bloom,    { opacity:0.8, scale:0.85, ease:'power2.out' }, 0)
-    .to(greeting, { opacity:1, y:0, scale:1, ease:'power3.out' }, 0.2)
+  // Beat 2: "Happy Birthday," rises, bloom fills
+  gsap.timeline({ scrollTrigger:{ trigger:section, start:'20% top', end:'54% top', scrub:S } })
+    .to(bloom,    { opacity:0.82, scale:0.88, ease:'power2.out' }, 0)
+    .to(greeting, { opacity:1, y:0, scale:1, ease:'power3.out' }, 0.15)
 
-  // Beat 3 (46–78%): BETUUU — full bloom explosion
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'46% top', end:'78% top', scrub:SCRUB } })
-    .to(bloom,  { opacity:1, scale:1.3, ease:'power2.out' }, 0)
-    .to(nameEl, { opacity:1, y:0, scale:1, filter:'blur(0px)', ease:'power3.out' }, 0.2)
+  // Beat 3: BETUUU. Full bloom explosion + blur dissolve
+  gsap.timeline({ scrollTrigger:{ trigger:section, start:'48% top', end:'78% top', scrub:S } })
+    .to(bloom,  { opacity:1, scale:1.35, ease:'expo.out' }, 0)
+    .to(nameEl, { opacity:1, y:0, scale:1, filter:'blur(0px)', ease:'power3.out' }, 0.18)
 
-  // Beat 4 (70–86%): party cats bounce in
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'70% top', end:'86% top', scrub:SCRUB } })
-    .to(catRow, { opacity:1, y:0, ease:'back.out(1.5)' })
+  // Beat 4: party cats bounce in
+  gsap.timeline({ scrollTrigger:{ trigger:section, start:'72% top', end:'86% top', scrub:S } })
+    .to(catRow, { opacity:1, y:0, scale:1, ease:'back.out(2)' })
 
-  // Confetti fires once when birthday name is fully revealed
-  let confettiFired = false
-  ScrollTrigger.create({
-    trigger: section, start: '74% top',
-    onEnter: () => {
-      if (!confettiFired && confetti) {
-        confettiFired = true
-        spawnConfetti(confetti)
-      }
-    },
-    onLeaveBack: () => { confettiFired = false; if (confetti) confetti.innerHTML = '' },
+  // Confetti fires once
+  let fired = false
+  ScrollTrigger.create({ trigger:section, start:'76% top',
+    onEnter:()  => { if (!fired&&confetti) { fired=true; spawnConfetti(confetti) } },
+    onLeaveBack:()=> { fired=false; if (confetti) confetti.innerHTML='' },
   })
 
-  // Exit (84–100%)
-  gsap.timeline({ scrollTrigger:{ trigger:section, start:'84% top', end:'100% top', scrub:SCRUB } })
-    .to([dateEl,greeting,nameEl,catRow], { opacity:0, y:-40, stagger:0.04, ease:'power1.in' }, 0)
-    .to(bloom, { opacity:0, scale:1.6, ease:'power2.in' }, 0)
+  // Exit
+  gsap.timeline({ scrollTrigger:{ trigger:section, start:'86% top', end:'100% top', scrub:0.7 } })
+    .to([dateEl,greeting,nameEl,catRow], { opacity:0, y:-45, stagger:0.04, ease:'power1.in' }, 0)
+    .to(bloom, { opacity:0, scale:1.7, ease:'power2.in' }, 0)
 }
