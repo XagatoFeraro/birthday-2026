@@ -260,30 +260,35 @@ function buildScaffold(): void {
   </div>
 
   <!-- ═══════════════════════════════════════
-       10. OUR VIDEO
+       10. OUR VIDEO — Portrait reel
   ═══════════════════════════════════════ -->
-  <section class="scene story-scene" id="scene-video" style="background:var(--ink);justify-content:center;align-items:center;text-align:center">
-    <div class="story-content" id="video-content" style="align-items:center;max-width:min(760px,95vw)">
-      <span class="story-date" style="color:rgba(255,255,255,0.5)">Us.</span>
-      <h2 style="color:white;text-align:center">${ourVideo.title}</h2>
-      <p style="color:rgba(255,255,255,0.65);text-align:center;margin:0 auto">${ourVideo.caption}</p>
-      <div class="our-video-wrap" id="our-video-wrap">
-        <video
-          id="our-video"
-          src="${import.meta.env.BASE_URL}${ourVideo.src}"
-          poster="${import.meta.env.BASE_URL}${ourVideo.poster}"
-          playsinline
-          webkit-playsinline
-          preload="none"
-          loop
-          style="width:100%;display:block;border-radius:16px"
-        ></video>
-        <button class="our-video-btn" id="our-video-btn" aria-label="Play video">
-          <div class="our-video-play-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
-          </div>
-        </button>
-      </div>
+  <section class="scene" id="scene-video" style="background:var(--ink);min-height:100dvh">
+    <!-- Text side -->
+    <div class="our-video-text" id="video-text">
+      <span class="story-date">Us. ♡</span>
+      <h2>${ourVideo.title}</h2>
+      <p>${ourVideo.caption}</p>
+      <p style="font-family:var(--font-note);font-size:var(--t-lg);color:rgba(255,255,255,0.5)">7 years. 9 years. ∞ more.</p>
+    </div>
+
+    <!-- Portrait reel -->
+    <div class="our-video-wrap" id="our-video-wrap">
+      <div class="reel-glow"></div>
+      <video
+        id="our-video"
+        src="${import.meta.env.BASE_URL}${ourVideo.src}"
+        poster="${import.meta.env.BASE_URL}${ourVideo.poster}"
+        playsinline
+        webkit-playsinline
+        preload="none"
+        loop
+      ></video>
+      <button class="our-video-btn" id="our-video-btn" aria-label="Play video">
+        <div class="our-video-play-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </button>
+      <div class="no-video-label" id="no-video-label" style="display:none">🎬 video uploading...</div>
     </div>
   </section>
 
@@ -477,6 +482,14 @@ function initStoryScenes(): void {
     }
   })
 
+  // Video text reveal
+  const videoText = document.getElementById('video-text')
+  if (videoText) {
+    gsap.set(videoText, { opacity:0, x:-30 })
+    ScrollTrigger.create({ trigger:'#scene-video', start:'top 75%', once:true,
+      onEnter:() => gsap.to(videoText, { opacity:1, x:0, duration:0.9, ease:'power3.out' }) })
+  }
+
   // Video scene — play/pause + graceful no-video state
   const videoEl  = document.getElementById('our-video') as HTMLVideoElement | null
   const videoBtn = document.getElementById('our-video-btn')
@@ -487,6 +500,8 @@ function initStoryScenes(): void {
     videoEl.addEventListener('error', () => {
       videoWrap.classList.add('no-video')
       videoBtn.style.display = 'none'
+      const lbl = document.getElementById('no-video-label')
+      if (lbl) lbl.style.display = 'flex'
     }, { once: true })
 
     videoBtn.addEventListener('click', () => {

@@ -1,85 +1,38 @@
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-// Note: ScrollTrigger is registered in main.ts before initScroll() is called
 
-// ── Detect reduced-motion preference ────────────────────────────────────────
-export const prefersReducedMotion = window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
-).matches
+export const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+export const isCoarsePointer      = window.matchMedia('(pointer: coarse)').matches
 
-// ── Detect touch / pointer capability ───────────────────────────────────────
-export const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
-export const hasHover        = window.matchMedia('(hover: hover)').matches
-
-// ── Derive device choreography tier ─────────────────────────────────────────
-// Used by animation modules to select the appropriate choreography.
-// Not device sniffing — based on actual capabilities + viewport.
-export type Tier = 'desktop' | 'tablet' | 'mobile'
-
-export function getTier(): Tier {
-  const w = window.innerWidth
-  if (w >= 1024 && !isCoarsePointer) return 'desktop'
-  if (w >= 641)                        return 'tablet'
-  return 'mobile'
-}
-
-// ── Lenis instance ───────────────────────────────────────────────────────────
 let lenis: Lenis | null = null
 
 export function initScroll(): void {
-  // Disable Lenis on reduced-motion or very low-end devices —
-  // fall back to native browser scrolling.
-  if (prefersReducedMotion) {
-    // Still need ScrollTrigger to use native scroll
-    ScrollTrigger.normalizeScroll(false)
-    return
-  }
+  if (prefersReducedMotion) { ScrollTrigger.normalizeScroll(false); return }
 
   lenis = new Lenis({
-    duration: 1.1,
-    easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    duration: 0.9,          // tighter = more responsive, less laggy
+    easing: (t: number) => 1 - Math.pow(1 - t, 4), // quartic ease-out
     orientation: 'vertical',
     gestureOrientation: 'vertical',
     smoothWheel: true,
-    // Touch devices: let native momentum scroll handle it,
-    // only smooth on wheel/trackpad.
-    touchMultiplier: isCoarsePointer ? 0 : 1.5,
+    wheelMultiplier: 0.85,  // slightly slower wheel = more cinematic
+    touchMultiplier: isCoarsePointer ? 1.8 : 1.5,
+    infinite: false,
+    autoResize: true,
   })
 
-  // Connect Lenis scroll position to GSAP ScrollTrigger
+  // Sync Lenis → ScrollTrigger every frame
   lenis.on('scroll', ScrollTrigger.update)
-
-  gsap.ticker.add((time) => {
-    lenis?.raf(time * 1000)
-  })
-
+  gsap.ticker.add((time) => { lenis?.raf(time * 1000) })
   gsap.ticker.lagSmoothing(0)
+
+  // Debounced refresh on resize / orientation change
+  let t: ReturnType<typeof setTimeout>
+  const refresh = (delay = 220) => { clearTimeout(t); t = setTimeout(() => ScrollTrigger.refresh(true), delay) }
+  window.addEventListener('resize', () => refresh())
+  window.addEventListener('orientationchange', () => refresh(450))
 }
 
-export function destroyScroll(): void {
-  lenis?.destroy()
-  lenis = null
-}
-
-export function getLenis(): Lenis | null {
-  return lenis
-}
-
-// ── ScrollTrigger refresh on orientation / resize ───────────────────────────
-// Debounced to avoid excessive recalculation on mobile browser chrome changes.
-let refreshTimer: ReturnType<typeof setTimeout>
-
-window.addEventListener('resize', () => {
-  clearTimeout(refreshTimer)
-  refreshTimer = setTimeout(() => {
-    ScrollTrigger.refresh(true)
-  }, 200)
-})
-
-window.addEventListener('orientationchange', () => {
-  clearTimeout(refreshTimer)
-  refreshTimer = setTimeout(() => {
-    ScrollTrigger.refresh(true)
-  }, 400)
-})
+export function getLenis() { return lenis }
+export function destroyScroll() { lenis?.destroy(); lenis = null }
