@@ -12,7 +12,7 @@ import { createNav }      from './components/nav'
 import { MEME_CATS, createMemeCatCard } from './components/memecats'
 import { initTimeline }   from './scenes/timeline'
 import { initBirthday }   from './scenes/birthday'
-import { birthdayMessage } from './data/memories'
+import { birthdayMessage, ourVideo } from './data/memories'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -45,17 +45,21 @@ const RANDOM_CAT_IDS = [
 
 function gif(id: string, w = 120, label = '', tilt = 0, extraStyle = ''): string {
   const rot = tilt ? `transform:rotate(${tilt}deg);` : ''
+  // Giphy embeds: use padding-bottom trick for 480x270 (16:9) aspect ratio
+  // The iframe expands to fill the container naturally
   return `
     <div class="gif-wrap" style="width:${w}px;${rot}${extraStyle}">
-      <iframe
-        src="https://giphy.com/embed/${id}"
-        class="giphy-embed"
-        width="${w}" height="${w}"
-        frameBorder="0"
-        allowFullScreen
-        title="${label || 'gif'}"
-        loading="lazy"
-      ></iframe>
+      <div class="giphy-outer" style="width:${w}px;height:${w}px">
+        <iframe
+          src="https://giphy.com/embed/${id}"
+          class="giphy-embed"
+          style="width:${w}px;height:${w}px"
+          frameBorder="0"
+          allowFullScreen
+          title="${label || 'gif'}"
+          loading="lazy"
+        ></iframe>
+      </div>
       ${label ? `<p class="gif-label">${label}</p>` : ''}
     </div>`
 }
@@ -256,6 +260,34 @@ function buildScaffold(): void {
   </div>
 
   <!-- ═══════════════════════════════════════
+       10. OUR VIDEO
+  ═══════════════════════════════════════ -->
+  <section class="scene story-scene" id="scene-video" style="background:var(--ink);justify-content:center;align-items:center;text-align:center">
+    <div class="story-content" id="video-content" style="align-items:center;max-width:min(760px,95vw)">
+      <span class="story-date" style="color:rgba(255,255,255,0.5)">Us.</span>
+      <h2 style="color:white;text-align:center">${ourVideo.title}</h2>
+      <p style="color:rgba(255,255,255,0.65);text-align:center;margin:0 auto">${ourVideo.caption}</p>
+      <div class="our-video-wrap" id="our-video-wrap">
+        <video
+          id="our-video"
+          src="${import.meta.env.BASE_URL}${ourVideo.src}"
+          poster="${import.meta.env.BASE_URL}${ourVideo.poster}"
+          playsinline
+          webkit-playsinline
+          preload="none"
+          loop
+          style="width:100%;display:block;border-radius:16px"
+        ></video>
+        <button class="our-video-btn" id="our-video-btn" aria-label="Play video">
+          <div class="our-video-play-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
        11. MEMORIES TIMELINE
   ═══════════════════════════════════════ -->
   <section id="scene-timeline" class="scene">
@@ -432,14 +464,59 @@ function initStoryScenes(): void {
       onEnter:() => gsap.to(gfReact, { opacity:1, y:0, duration:0.7, ease:'back.out(1.3)' }) })
   }
 
-  // story-content blocks
+  // story-content blocks — use threshold-based check, handle if already visible
   document.querySelectorAll<HTMLElement>('.story-content').forEach((el) => {
-    gsap.set(el, { opacity:0, y:30 })
-    ScrollTrigger.create({ trigger:el, start:'top 80%', once:true,
-      onEnter:() => gsap.to(el, { opacity:1, y:0, duration:0.8, ease:'power2.out' }) })
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight * 0.9) {
+      // Already in viewport on load — show immediately
+      gsap.set(el, { opacity:1, y:0 })
+    } else {
+      gsap.set(el, { opacity:0, y:30 })
+      ScrollTrigger.create({ trigger:el, start:'top 80%', once:true,
+        onEnter:() => gsap.to(el, { opacity:1, y:0, duration:0.8, ease:'power2.out' }) })
+    }
   })
 
-  // "Me when I see you" — appears fixed on screen near scene-official
+  // Video scene — play/pause + graceful no-video state
+  const videoEl  = document.getElementById('our-video') as HTMLVideoElement | null
+  const videoBtn = document.getElementById('our-video-btn')
+  const videoWrap = document.getElementById('our-video-wrap')
+
+  if (videoEl && videoBtn && videoWrap) {
+    // Check if video src actually exists — if not, show placeholder
+    videoEl.addEventListener('error', () => {
+      videoWrap.classList.add('no-video')
+      videoBtn.style.display = 'none'
+    }, { once: true })
+
+    videoBtn.addEventListener('click', () => {
+      if (videoEl.paused) {
+        videoEl.play().then(() => {
+          videoBtn.classList.add('is-playing')
+        }).catch(() => {})
+      } else {
+        videoEl.pause()
+        videoBtn.classList.remove('is-playing')
+      }
+    })
+
+    // Pause when scrolled out of view
+    const videoObs = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting && !videoEl.paused) {
+        videoEl.pause()
+        videoBtn.classList.remove('is-playing')
+      }
+    }, { threshold: 0.2 })
+    videoObs.observe(videoWrap)
+
+    // Preload metadata when near
+    const preloadObs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && videoEl.preload === 'none') {
+        videoEl.preload = 'metadata'
+      }
+    }, { rootMargin: '50% 0px' })
+    preloadObs.observe(videoWrap)
+  }
   const meWhen = document.getElementById('me-when-wrap')
   if (meWhen) {
     gsap.set(meWhen, { opacity:0, x:20 })

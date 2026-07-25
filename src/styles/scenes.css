@@ -113,7 +113,6 @@
   position: sticky; top: 0;
   height: 100dvh;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
 }
 
 .who__bg {
@@ -822,13 +821,19 @@
   gap: 6px;
 }
 
-.giphy-embed {
-  display: block;
+.giphy-outer {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-  pointer-events: none; /* prevent iframe focus stealing scroll */
+  flex-shrink: 0;
+  background: var(--cream-deep); /* placeholder while loading */
+}
+
+.giphy-embed {
+  display: block;
   border: none;
+  /* pointer-events off so scroll isn't stolen */
+  pointer-events: none;
 }
 
 .gif-label {
@@ -860,7 +865,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: var(--sp-2xl) clamp(var(--sp-lg), 8vw, 8rem);
-  overflow: hidden;
+  /* NO overflow:hidden — floated gif iframes must be visible */
   gap: var(--sp-lg);
 }
 
@@ -1143,4 +1148,87 @@
 
 @media (min-width: 641px) and (max-width: 1023px) {
   .story-scene { padding: var(--sp-xl) var(--sp-lg); }
+}
+
+/* ═══════════════════════════════════════
+   OUR VIDEO SCENE
+   ═══════════════════════════════════════ */
+.our-video-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  background: #111;
+  margin-top: var(--sp-md);
+  cursor: pointer;
+}
+
+.our-video-wrap video {
+  width: 100%;
+  display: block;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #111;
+}
+
+/* Shown when no poster / video not loaded yet */
+.our-video-wrap::before {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1a0a14, #0a0a1a);
+  border-radius: 16px;
+  z-index: 0;
+}
+
+.our-video-wrap video { position: relative; z-index: 1; }
+
+.our-video-btn {
+  position: absolute;
+  inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 16px;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+
+.our-video-btn:hover { background: rgba(0,0,0,0.05); }
+.our-video-btn.is-playing { background: transparent; }
+.our-video-btn.is-playing .our-video-play-icon { opacity: 0; }
+
+.our-video-play-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s var(--ease-spring), opacity 0.3s;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.our-video-btn:hover .our-video-play-icon { transform: scale(1.1); }
+
+/* ── "Add your video" placeholder state ── */
+.our-video-wrap.no-video {
+  aspect-ratio: 16/9;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: var(--sp-sm);
+  min-height: 200px;
+}
+
+.our-video-wrap.no-video::after {
+  content: '🎬  Add videos/our-video.mp4 to GitHub';
+  position: absolute;
+  font-family: var(--font-note);
+  font-size: var(--text-md);
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  z-index: 3;
+  padding: var(--sp-md);
 }
