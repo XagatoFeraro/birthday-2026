@@ -69,16 +69,14 @@ export function initIntro(): void {
       .to(sub,    { opacity:1, y:0, duration:0.8, ease:'power2.out' }, '-=0.4')
       .to(hint,   { opacity:1, duration:0.7 }, '+=0.5')
 
-    // Kitten tail idle
-    const tail = kitten.querySelector('[data-cat-part="tail"]')
-    if (tail) gsap.to(tail, { rotate:10, duration:2.2, ease:'sine.inOut', yoyo:true, repeat:-1, delay:1.5 })
-
-    // Eye blink every 4s
-    const pupils = kitten.querySelectorAll('[data-cat-part="face"] ellipse:nth-child(-n+2)')
-    if (pupils.length) {
-      const blink = () => gsap.to(pupils, { scaleY:0.05, duration:0.07, ease:'power2.in', yoyo:true, repeat:1, transformOrigin:'center center', stagger:0 })
-      setTimeout(() => { blink(); setInterval(blink, 4200) }, 2800)
+    // Kitten tail idle — now just bob the whole img element
+    const kittenImg = kitten.querySelector('.kitten-img')
+    if (kittenImg) {
+      // The CSS animation handles bobbing; just ensure it's running
     }
+
+    // Eye blink — not applicable for real photo, skip
+
   } else {
     gsap.set([bg,kitten,whisper,headline,sub,hint], { opacity:1, y:0, scale:1, filter:'none', rotate:0 })
   }
