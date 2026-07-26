@@ -14,6 +14,8 @@ import { initIntro }      from './scenes/intro'
 import { initMeet }       from './scenes/meet'
 import { initTimeline }   from './scenes/timeline'
 import { initBirthday }   from './scenes/birthday'
+import { buildPhotoBoard } from './scenes/photos'
+import { buildInstaScene } from './scenes/instagram'
 import { birthdayMessage, ourVideo } from './data/memories'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -86,6 +88,9 @@ function buildScaffold(): void {
   <section id="scene-intro" class="scene">
     <div class="intro__stage">
       <div class="intro__bg"></div>
+      <div class="cover-bg">
+        <img src="${import.meta.env.BASE_URL}videos/cover.webp" alt="" aria-hidden="true" loading="eager" decoding="async"/>
+      </div>
       <div class="intro__deco"></div>
       <div class="intro__cat-wrap"></div>
       <p class="intro__whisper">pspspsps... 👀</p>
@@ -293,9 +298,43 @@ function buildScaffold(): void {
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════
-       12. BIRTHDAY CLIMAX
-  ═══════════════════════════════════════ -->
+  <!-- PINTEREST PHOTO BOARD -->
+  <section id="scene-photos" class="scene">
+    <div class="photos-header">
+      <h2 class="squiggle">Her world, in pictures.</h2>
+      <p>a collection ♡</p>
+      <div class="pin-tags" style="margin-top:var(--sp-sm)">
+        <span class="tag tag--rose">✨ Betuuu</span>
+        <span class="tag tag--sage">📍 Kanpur</span>
+        <span class="tag tag--lavender">💜 9 years</span>
+        <span class="tag tag--butter">🎂 Birthday 2026</span>
+        <span class="tag">🐱 Adi & Tanisha</span>
+      </div>
+    </div>
+    <div class="pin-board"></div>
+  </section>
+
+  <!-- INSTAGRAM -->
+  <section id="scene-insta" class="scene">
+    <div class="insta-header">
+      <span class="eyebrow">find her here</span>
+      <h2>She posts, therefore she is iconic.</h2>
+      <p>real content. real Betuuu. daily proof.</p>
+      <a
+        href="https://www.instagram.com/taniisha.tripathii"
+        target="_blank" rel="noopener"
+        class="insta-handle"
+      >
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;fill:white;flex-shrink:0">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+        @taniisha.tripathii
+      </a>
+    </div>
+    <div class="insta-grid"></div>
+  </section>
+
+  <!-- BIRTHDAY CLIMAX -->
   <section id="scene-birthday" class="scene">
     <div class="birthday__stage">
       <div class="birthday__bloom"></div>
@@ -338,125 +377,176 @@ function initPersonalityScene(): void {
 
 // ── Story scenes — IntersectionObserver reveals ────────────────────────────────
 function initStoryScenes(): void {
-  // Generic reveal: anything with data-reveal attribute
-  document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
-    gsap.set(el, { opacity:0, y:25 })
-    ScrollTrigger.create({ trigger:el, start:'top 82%', once:true,
-      onEnter:() => gsap.to(el, { opacity:1, y:0, duration:0.7, ease:'power2.out' }) })
+  // ── Utility: reveal element on scroll ───────────────────────────────────────
+  function onEnter(
+    selector: string | HTMLElement,
+    anim: (el: HTMLElement) => void,
+    opts: { start?: string; delay?: number } = {}
+  ) {
+    const el = typeof selector === 'string'
+      ? document.querySelector<HTMLElement>(selector) : selector
+    if (!el) return
+    ScrollTrigger.create({
+      trigger: el,
+      start: opts.start ?? 'top 85%',
+      once: true,
+      onEnter: () => {
+        if (opts.delay) gsap.delayedCall(opts.delay, () => anim(el))
+        else anim(el)
+      },
+    })
+  }
+
+  // ── Headings: char-by-char stagger ──────────────────────────────────────────
+  document.querySelectorAll<HTMLElement>('.story-content h2').forEach((h2) => {
+    const rect = h2.getBoundingClientRect()
+    if (rect.top < window.innerHeight) { gsap.set(h2, { opacity:1 }); return }
+    gsap.set(h2, { opacity:1 })
+    const words = (h2.textContent ?? '').split(' ')
+    h2.innerHTML = words.map(w =>
+      `<span style="display:inline-block;overflow:hidden;vertical-align:bottom">` +
+      `<span class="word-inner" style="display:inline-block;will-change:transform">${w}</span></span> `
+    ).join('')
+    const inners = h2.querySelectorAll<HTMLElement>('.word-inner')
+    gsap.set(inners, { y: '110%' })
+    onEnter(h2, () => {
+      gsap.to(inners, { y:'0%', duration:0.65, stagger:0.06, ease:'power3.out' })
+    }, { start: 'top 82%' })
   })
 
-  // DM bubble
-  const dm = document.getElementById('dm-bubble')
-  if (dm) {
-    gsap.set(dm, { opacity:0, y:20, scale:0.95 })
-    ScrollTrigger.create({ trigger:dm, start:'top 85%', once:true,
-      onEnter:() => gsap.to(dm, { opacity:1, y:0, scale:1, duration:0.7, ease:'back.out(1.4)' }) })
-  }
-
-  // Talent cards stagger
-  document.querySelectorAll<HTMLElement>('.talent-card').forEach((card, i) => {
-    gsap.set(card, { opacity:0, y:40 })
-    ScrollTrigger.create({ trigger:card, start:'top 88%', once:true,
-      onEnter:() => gsap.to(card, { opacity:1, y:0, duration:0.55, delay:i*0.12, ease:'back.out(1.3)' }) })
-  })
-
-  // listen-row
-  const lr = document.getElementById('listen-row')
-  if (lr) {
-    gsap.set(lr, { opacity:0, y:20 })
-    ScrollTrigger.create({ trigger:lr, start:'top 85%', once:true,
-      onEnter:() => gsap.to(lr, { opacity:1, y:0, duration:0.7, delay:0.2, ease:'power2.out' }) })
-  }
-
-  // Ragebait row
-  const rbRow = document.getElementById('ragebait-row')
-  if (rbRow) {
-    gsap.set(rbRow, { opacity:0 })
-    ScrollTrigger.create({ trigger:rbRow, start:'top 80%', once:true,
-      onEnter:() => gsap.to(rbRow, { opacity:1, duration:0.7, ease:'power2.out' }) })
-  }
-
-  // GF react
-  const gfReact = document.getElementById('gf-react')
-  if (gfReact) {
-    gsap.set(gfReact, { opacity:0, y:20 })
-    ScrollTrigger.create({ trigger:gfReact, start:'top 85%', once:true,
-      onEnter:() => gsap.to(gfReact, { opacity:1, y:0, duration:0.7, ease:'back.out(1.3)' }) })
-  }
-
-  // story-content blocks — use threshold-based check, handle if already visible
-  document.querySelectorAll<HTMLElement>('.story-content').forEach((el) => {
+  // ── story-content paragraphs: fade up ───────────────────────────────────────
+  document.querySelectorAll<HTMLElement>('.story-content p, .story-date, .story-note').forEach((el) => {
     const rect = el.getBoundingClientRect()
-    if (rect.top < window.innerHeight * 0.9) {
-      // Already in viewport on load — show immediately
-      gsap.set(el, { opacity:1, y:0 })
-    } else {
-      gsap.set(el, { opacity:0, y:30 })
-      ScrollTrigger.create({ trigger:el, start:'top 80%', once:true,
-        onEnter:() => gsap.to(el, { opacity:1, y:0, duration:0.8, ease:'power2.out' }) })
-    }
+    if (rect.top < window.innerHeight) { gsap.set(el, { opacity:1 }); return }
+    gsap.set(el, { opacity:0, y:22 })
+    onEnter(el, (e) => gsap.to(e, { opacity:1, y:0, duration:0.7, ease:'power2.out' }), { start:'top 88%' })
   })
 
-  // Video text reveal
+  // ── DM bubble: scale + slide from left ──────────────────────────────────────
+  onEnter('#dm-bubble', (el) => {
+    gsap.fromTo(el,
+      { opacity:0, x:-30, scale:0.92 },
+      { opacity:1, x:0, scale:1, duration:0.75, ease:'back.out(1.5)' }
+    )
+  })
+
+  // ── Talent cards: cascade with spring ───────────────────────────────────────
+  document.querySelectorAll<HTMLElement>('.talent-card').forEach((card, i) => {
+    gsap.set(card, { opacity:0, y:50, rotate: i%2===0 ? -4 : 4 })
+    onEnter(card, (el) => {
+      gsap.to(el, {
+        opacity:1, y:0, rotate:0,
+        duration:0.6, delay:i*0.1,
+        ease:'back.out(1.4)',
+      })
+    }, { start:'top 90%' })
+  })
+
+  // ── Listen row: slide from sides ─────────────────────────────────────────────
+  onEnter('#listen-row', (el) => {
+    const children = el.children
+    gsap.fromTo(children[0], { opacity:0, x:-30 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' })
+    gsap.fromTo(children[1], { opacity:0, scale:0.5 }, { opacity:1, scale:1, duration:0.5, delay:0.1, ease:'back.out(2)' })
+    gsap.fromTo(children[2], { opacity:0, x:30 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' })
+  })
+
+  // ── Ragebait: left/right swoosh ───────────────────────────────────────────────
+  onEnter('#ragebait-row', (el) => {
+    const sides = el.querySelectorAll('.ragebait-side')
+    const arrow = el.querySelector('.ragebait-arrow')
+    gsap.fromTo(sides[0], { opacity:0, x:-50, rotate:-8 }, { opacity:1, x:0, rotate:0, duration:0.7, ease:'back.out(1.4)' })
+    gsap.fromTo(sides[1], { opacity:0, x:50, rotate:8 }, { opacity:1, x:0, rotate:0, duration:0.7, ease:'back.out(1.4)' })
+    gsap.fromTo(arrow, { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.4, delay:0.3, ease:'back.out(2)' })
+  })
+
+  // ── GF react: pop up from below ───────────────────────────────────────────────
+  onEnter('#gf-react', (el) => {
+    gsap.fromTo(el, { opacity:0, y:30, scale:0.85 }, { opacity:1, y:0, scale:1, duration:0.65, ease:'back.out(1.7)' })
+  })
+
+  // ── Video scene ────────────────────────────────────────────────────────────────
   const videoText = document.getElementById('video-text')
   if (videoText) {
-    gsap.set(videoText, { opacity:0, x:-30 })
-    ScrollTrigger.create({ trigger:'#scene-video', start:'top 75%', once:true,
-      onEnter:() => gsap.to(videoText, { opacity:1, x:0, duration:0.9, ease:'power3.out' }) })
+    gsap.set(videoText, { opacity:0, x:-40 })
+    onEnter('#scene-video', () => {
+      gsap.to(videoText, { opacity:1, x:0, duration:0.9, ease:'power3.out' })
+    }, { start:'top 70%' })
   }
 
-  // Video scene — play/pause + graceful no-video state
-  const videoEl  = document.getElementById('our-video') as HTMLVideoElement | null
-  const videoBtn = document.getElementById('our-video-btn')
+  const phone = document.querySelector<HTMLElement>('.our-video-phone')
+  if (phone) {
+    gsap.set(phone, { opacity:0, y:40, scale:0.92 })
+    onEnter('#scene-video', () => {
+      gsap.to(phone, { opacity:1, y:0, scale:1, duration:0.9, delay:0.15, ease:'back.out(1.3)' })
+    }, { start:'top 70%' })
+  }
+
+  const videoEl   = document.getElementById('our-video') as HTMLVideoElement | null
+  const videoBtn  = document.getElementById('our-video-btn')
   const videoWrap = document.getElementById('our-video-wrap')
 
   if (videoEl && videoBtn && videoWrap) {
-    // Check if video src actually exists — if not, show placeholder
     videoEl.addEventListener('error', () => {
       videoWrap.classList.add('no-video')
       videoBtn.style.display = 'none'
       const lbl = document.getElementById('no-video-label')
       if (lbl) lbl.style.display = 'flex'
-    }, { once: true })
+    }, { once:true })
 
     videoBtn.addEventListener('click', () => {
       if (videoEl.paused) {
-        videoEl.play().then(() => {
-          videoBtn.classList.add('is-playing')
-        }).catch(() => {})
+        videoEl.play().then(() => videoBtn.classList.add('is-playing')).catch(() => {})
       } else {
         videoEl.pause()
         videoBtn.classList.remove('is-playing')
       }
     })
 
-    // Pause when scrolled out of view
     const videoObs = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting && !videoEl.paused) {
-        videoEl.pause()
-        videoBtn.classList.remove('is-playing')
+        videoEl.pause(); videoBtn.classList.remove('is-playing')
       }
-    }, { threshold: 0.2 })
+    }, { threshold:0.2 })
     videoObs.observe(videoWrap)
 
-    // Preload metadata when near
     const preloadObs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && videoEl.preload === 'none') {
-        videoEl.preload = 'metadata'
-      }
-    }, { rootMargin: '50% 0px' })
+      if (entry.isIntersecting && videoEl.preload === 'none') videoEl.preload = 'metadata'
+    }, { rootMargin:'50% 0px' })
     preloadObs.observe(videoWrap)
   }
+
+  // ── "Me when I see you" fixed pop-in ─────────────────────────────────────────
   const meWhen = document.getElementById('me-when-wrap')
   if (meWhen) {
-    gsap.set(meWhen, { opacity:0, x:20 })
+    gsap.set(meWhen, { opacity:0, scale:0.7, x:20 })
     ScrollTrigger.create({ trigger:'#scene-official', start:'top center', once:true,
       onEnter:() => {
-        gsap.to(meWhen, { opacity:1, x:0, duration:0.6, ease:'back.out(1.4)' })
-        gsap.to(meWhen, { opacity:0, duration:0.5, delay:5, ease:'power1.in' })
+        gsap.to(meWhen, { opacity:1, scale:1, x:0, duration:0.6, ease:'back.out(1.7)' })
+        gsap.to(meWhen, { opacity:0, duration:0.5, delay:5.5, ease:'power1.in' })
       }
     })
   }
+
+  // ── Photos header ───────────────────────────────────────────────────────────
+  const photosHeader = document.querySelector<HTMLElement>('.photos-header')
+  if (photosHeader) {
+    gsap.set(photosHeader, { opacity:0, y:24 })
+    onEnter(photosHeader, (el) => gsap.to(el, { opacity:1, y:0, duration:0.75, ease:'power2.out' }))
+  }
+
+  // ── Pin tags: cascade stagger ────────────────────────────────────────────────
+  const pinTags = document.querySelectorAll<HTMLElement>('.pin-tags .tag')
+  if (pinTags.length) {
+    gsap.set(pinTags, { opacity:0, y:12, scale:0.85 })
+    ScrollTrigger.create({ trigger:'.pin-tags', start:'top 88%', once:true,
+      onEnter: () => gsap.to(pinTags, { opacity:1, y:0, scale:1, duration:0.45, stagger:0.07, ease:'back.out(1.6)' })
+    })
+  }
+
+  // ── Instagram header ─────────────────────────────────────────────────────────
+  onEnter('.insta-header', (el) => {
+    gsap.fromTo(el, { opacity:0, y:30 }, { opacity:1, y:0, duration:0.8, ease:'power2.out' })
+  })
 }
 
 // ── Final message injection ────────────────────────────────────────────────────
@@ -491,12 +581,14 @@ function init(): void {
   buildScaffold()
   initScroll()
 
-  initIntro()       // intro.ts — kitten entrance, petals
-  initMeet()        // meet.ts  — Tanisha → Betuuu
+  initIntro()
+  initMeet()
   initPersonalityScene()
   initStoryScenes()
   initTimeline()
-  initBirthday()    // birthday.ts — climax
+  buildPhotoBoard()
+  buildInstaScene()
+  initBirthday()
   initFinalScene()
 
   document.body.appendChild(createNav())
